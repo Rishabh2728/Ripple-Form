@@ -10,67 +10,47 @@ import { useToast } from "../../components/ui/toast";
 import { Button } from "../../components/ui/button";
 import { Textarea } from "../../components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  ArrowLeft, Sparkles, AlertTriangle, ArrowRight, Bot, Cpu, Zap, Check, Flame, RefreshCw, Wand2, ShieldCheck, Layers, Eye
-} from "lucide-react";
+import { ArrowLeft, Sparkles, AlertTriangle, ArrowRight, Loader2 } from "lucide-react";
 
 export default function AIGeneratorPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { success, error: toastError } = useToast();
 
-  // Opening AI Animation State
+  // Opening Theme-Aligned Animation State
   const [openingDone, setOpeningDone] = useState(false);
-  const [aiScanStep, setAiScanStep] = useState(0);
 
   // Form Generator State
-  const [prompt, setPrompt] = useState("Create a SaaS customer satisfaction survey with 5 questions focusing on design, speed, and overall NPS score.");
-  const [tone, setTone] = useState<"professional" | "friendly" | "concise">("professional");
-  const [theme, setTheme] = useState<"burgundy" | "midnight" | "forest" | "ocean">("burgundy");
-
-  // Generation Loading State & Synthesizer Steps
+  const [prompt, setPrompt] = useState("Create a customer satisfaction survey with 5 questions focusing on product quality, shipping speed, and overall feedback.");
   const [loading, setLoading] = useState(false);
-  const [synthStep, setSynthStep] = useState(0);
   const [resultMsg, setResultMsg] = useState<string | null>(null);
 
-  // Opening animation timeline trigger
+  // Theme-aligned opening transition
   useEffect(() => {
     const timer = setTimeout(() => {
       setOpeningDone(true);
-    }, 1400);
+    }, 1000);
     return () => clearTimeout(timer);
   }, []);
 
-  // Presets
+  // Clean Emoji-Free Prompt Presets
   const promptPresets = [
     {
-      label: "🚀 SaaS Customer Survey",
-      prompt: "Create a 5-question SaaS customer feedback survey asking about UI usability, feature requests, likelihood to recommend (NPS), and main blockers."
+      label: "SaaS Customer Survey",
+      prompt: "Create a 5-question SaaS customer feedback survey asking about UI usability, feature requests, likelihood to recommend, and main blockers."
     },
     {
-      label: "💼 Employee Pulse Check",
-      prompt: "Create an anonymous employee pulse check survey with 4 questions regarding work-life balance, manager support, team tooling, and feedback."
+      label: "Employee Pulse Check",
+      prompt: "Create an anonymous employee pulse check survey with 4 questions regarding work-life balance, team support, and overall satisfaction."
     },
     {
-      label: "🎉 Event RSVP & Dietary",
-      prompt: "Create a developer conference RSVP registration form asking for attendee name, dietary preferences, workshop choices, and t-shirt size."
+      label: "Event Registration & RSVP",
+      prompt: "Create an event registration form asking for attendee name, dietary preferences, workshop choices, and contact email."
     },
     {
-      label: "🎓 Student Course Evaluation",
-      prompt: "Create a 5-question course feedback evaluation assessing instructor clarity, course materials usefulness, workload rating, and open comments."
-    },
-    {
-      label: "🛒 E-Commerce Feedback",
-      prompt: "Create a post-purchase feedback form for an e-commerce store assessing shipping speed, product quality satisfaction, and return preferences."
+      label: "Course Evaluation",
+      prompt: "Create a 5-question course feedback evaluation assessing instructor clarity, course materials usefulness, and open comments."
     }
-  ];
-
-  // Synthesizer simulation text
-  const synthStepsText = [
-    "🧠 Analyzing prompt intent & domain entity mapping...",
-    "⚡ Synthesizing question types & conversational choices...",
-    "🛡️ Validating pre-publish diagnostic auditor rules...",
-    "✨ Instantiating form schema & loading 3-panel builder..."
   ];
 
   const handleGenerate = async (e: React.FormEvent) => {
@@ -84,22 +64,9 @@ export default function AIGeneratorPage() {
 
     setLoading(true);
     setResultMsg(null);
-    setSynthStep(0);
-
-    // Simulate multi-stage AI neural synthesis progress steps
-    const stepInterval = setInterval(() => {
-      setSynthStep((prev) => {
-        if (prev >= 3) {
-          clearInterval(stepInterval);
-          return 3;
-        }
-        return prev + 1;
-      });
-    }, 600);
 
     try {
-      const fullPrompt = `${prompt} Tone: ${tone}. Theme: ${theme}.`;
-      const res = await api.generateAIForm(fullPrompt);
+      const res = await api.generateAIForm(prompt);
 
       if (res.message) {
         setResultMsg(res.message);
@@ -112,201 +79,106 @@ export default function AIGeneratorPage() {
           questions: res.form.questions,
         });
 
-        setTimeout(() => {
-          success(`✓ Form "${res.form.title}" generated!`);
-          router.push(`/builder/${newForm.id}`);
-        }, 1200);
+        success(`Form "${res.form.title}" generated!`);
+        router.push(`/builder/${newForm.id}`);
       }
     } catch (err) {
       toastError("AI Generation failed. You can create the form manually.");
+    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-crayon-paper text-[#1C1917] overflow-x-hidden">
+    <div className="min-h-screen flex flex-col bg-crayon-paper text-[#1C1917]">
       <Navbar />
 
-      {/* 1. FUTURISTIC AI OPENING ANIMATION OVERLAY */}
+      {/* 1. BRAND-ALIGNED WARM OPENING SCENE */}
       <AnimatePresence>
         {!openingDone && (
           <motion.div
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-            className="fixed inset-0 z-[9999] bg-[#1C1917] flex flex-col items-center justify-center text-white px-4 text-center"
+            transition={{ duration: 0.4 }}
+            className="fixed inset-0 z-[9999] bg-[#FCFBF7] flex flex-col items-center justify-center text-[#1C1917] px-4 text-center"
           >
-            {/* Expanding Neural AI Orb */}
             <motion.div
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: [0.5, 1.2, 1], opacity: 1 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="w-24 h-24 rounded-full bg-gradient-to-tr from-[#6E1F2A] via-[#38BDF8] to-[#34D399] p-1 shadow-[0_0_50px_rgba(110,31,42,0.6)] flex items-center justify-center mb-6"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="w-16 h-16 rounded-2xl bg-[#6E1F2A] text-white flex items-center justify-center mb-4 shadow-md border-2 border-[#541720]"
             >
-              <div className="w-full h-full bg-[#1C1917] rounded-full flex items-center justify-center">
-                <Bot className="w-10 h-10 text-[#38BDF8] animate-bounce" />
-              </div>
+              <Sparkles className="w-8 h-8 text-white animate-pulse" />
             </motion.div>
-
-            <motion.h2
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="text-2xl sm:text-3xl font-extrabold tracking-tight"
-            >
-              NEURAL AI FORM SYNTHESIZER 2.0
-            </motion.h2>
-
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.7 }}
-              transition={{ delay: 0.5 }}
-              className="text-xs font-mono text-[#38BDF8] mt-2 uppercase tracking-widest"
-            >
-              INITIALIZING CREATIVE SCHEMA MATRIX...
-            </motion.p>
+            <h2 className="text-xl font-extrabold text-[#1C1917] tracking-tight">
+              Ripple AI Form Generator
+            </h2>
+            <p className="text-xs font-semibold text-[#78716C] mt-1">
+              Initializing AI form studio...
+            </p>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 py-8 w-full space-y-8">
-        {/* Top Breadcrumb Navigation */}
-        <div className="flex items-center justify-between">
-          <Link
-            href="/dashboard"
-            className="text-xs font-bold text-[#6E1F2A] hover:underline flex items-center gap-1.5"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back to Workspace
-          </Link>
-          <span className="text-xs font-mono font-bold text-[#78716C] flex items-center gap-1.5">
-            <Cpu className="w-4 h-4 text-[#6E1F2A]" /> AI Model: Ripple-Schema-v2
-          </span>
+      {/* 2. MINIMALIST PAGE CONTENT */}
+      <main className="flex-1 max-w-2xl mx-auto px-4 sm:px-6 py-10 w-full space-y-6">
+        <Link
+          href="/dashboard"
+          className="text-xs font-bold text-[#6E1F2A] hover:underline flex items-center gap-1.5"
+        >
+          <ArrowLeft className="w-4 h-4" /> Back to Workspace
+        </Link>
+
+        {/* Clean Header */}
+        <div className="space-y-1 text-left">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1C1917] tracking-tight">
+            AI Form Generator
+          </h1>
+          <p className="text-xs sm:text-sm text-[#78716C] font-medium">
+            Describe the form you want to build and AI will generate the questions and structure.
+          </p>
         </div>
 
-        {/* 2. CREATIVE AI HERO HEADER */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="crayon-card bg-white p-6 sm:p-8 relative overflow-hidden space-y-4"
-        >
-          {/* Subtle Neural Halo Gradient Background */}
-          <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-[#F9EFEF] via-[#FEF3C7]/40 to-transparent rounded-full blur-2xl opacity-70 pointer-events-none" />
-
-          <div className="flex items-center gap-3 relative">
-            <div className="w-12 h-12 rounded-2xl bg-[#6E1F2A] text-white flex items-center justify-center font-bold shadow-md border border-[#541720]">
-              <Sparkles className="w-6 h-6 animate-pulse" />
-            </div>
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-[#F9EFEF] border border-[#F0C9CD] text-[11px] font-extrabold text-[#6E1F2A] mb-1">
-                <Wand2 className="w-3 h-3" />
-                <span>AI Prompt Architect</span>
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1C1917] tracking-tight">
-                AI Form Generator Studio
-              </h1>
-            </div>
-          </div>
-
-          <p className="text-sm text-[#78716C] font-medium leading-relaxed max-w-2xl relative">
-            Describe your target form in natural language. Our AI will automatically structure questions, conversational choices, required rules, and pre-publish health checks.
-          </p>
-
-          {/* Quick Prompt Presets Chips */}
-          <div className="pt-2 space-y-2 relative">
-            <span className="text-xs font-extrabold uppercase tracking-wider text-[#1C1917] block">
-              💡 One-Click Prompt Inspirations:
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {promptPresets.map((item, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => setPrompt(item.prompt)}
-                  className="px-3 py-1.5 rounded-xl bg-[#F6F3ED] hover:bg-[#F9EFEF] border border-[#E6DFD5] hover:border-[#F0C9CD] text-xs font-bold text-[#1C1917] hover:text-[#6E1F2A] transition-all text-left"
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </motion.div>
-
-        {/* 3. GENERATION FORM & STYLING CONTROLS */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="crayon-card crayon-card-brand p-6 sm:p-8 space-y-6"
-        >
+        {/* Clean Generator Card */}
+        <div className="crayon-card bg-white p-6 sm:p-8 space-y-6">
           {resultMsg && (
-            <div className="p-4 bg-[#FEF3C7] border-2 border-[#FBBF24] rounded-2xl text-xs text-[#D97706] font-bold flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+            <div className="p-3.5 bg-[#FEF3C7] border border-[#FBBF24] rounded-xl text-xs text-[#D97706] font-semibold flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
               <span>{resultMsg}</span>
             </div>
           )}
 
-          <form onSubmit={handleGenerate} className="space-y-6">
+          <form onSubmit={handleGenerate} className="space-y-5">
             <div className="space-y-2">
-              <label className="text-xs font-extrabold uppercase tracking-wider text-[#1C1917] block">
-                Prompt Instructions:
+              <label className="text-xs font-extrabold text-[#1C1917] block">
+                Prompt Instructions
               </label>
               <Textarea
                 rows={4}
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder="e.g. Create a 5-question event registration form for a developer summit with meal preferences and ticket categories."
+                placeholder="Describe your form (e.g. Create a 5-question customer feedback survey)..."
                 required
-                className="bg-white border-2 border-[#E6DFD5] text-sm font-medium focus:border-[#6E1F2A] rounded-2xl"
+                className="bg-white border-2 border-[#E6DFD5] text-xs font-medium focus:border-[#6E1F2A] rounded-2xl"
               />
             </div>
 
-            {/* Tone & Theme Preferences */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Tone Selection */}
-              <div className="space-y-2">
-                <label className="text-xs font-extrabold uppercase tracking-wider text-[#1C1917] block">
-                  Question Tone:
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(["professional", "friendly", "concise"] as const).map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => setTone(t)}
-                      className={`py-2 rounded-xl text-xs font-extrabold capitalize border transition-all ${
-                        tone === t
-                          ? "bg-[#6E1F2A] text-white border-[#6E1F2A] shadow-xs"
-                          : "bg-white text-[#78716C] border-[#E6DFD5] hover:bg-[#F6F3ED]"
-                      }`}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Theme Selection */}
-              <div className="space-y-2">
-                <label className="text-xs font-extrabold uppercase tracking-wider text-[#1C1917] block">
-                  Form Theme:
-                </label>
-                <div className="grid grid-cols-4 gap-2">
-                  {(["burgundy", "midnight", "forest", "ocean"] as const).map((th) => (
-                    <button
-                      key={th}
-                      type="button"
-                      onClick={() => setTheme(th)}
-                      className={`py-2 rounded-xl text-xs font-extrabold capitalize border transition-all ${
-                        theme === th
-                          ? "bg-[#6E1F2A] text-white border-[#6E1F2A] shadow-xs"
-                          : "bg-white text-[#78716C] border-[#E6DFD5] hover:bg-[#F6F3ED]"
-                      }`}
-                    >
-                      {th}
-                    </button>
-                  ))}
-                </div>
+            {/* Clean Prompt Presets */}
+            <div className="space-y-2">
+              <span className="text-[11px] font-bold text-[#78716C] uppercase tracking-wider block">
+                Sample Prompts:
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {promptPresets.map((item, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setPrompt(item.prompt)}
+                    className="px-3 py-1.5 rounded-xl bg-[#F6F3ED] hover:bg-[#F9EFEF] border border-[#E6DFD5] text-xs font-bold text-[#1C1917] hover:text-[#6E1F2A] transition-colors"
+                  >
+                    {item.label}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -315,98 +187,30 @@ export default function AIGeneratorPage() {
               type="submit"
               size="lg"
               isLoading={loading}
-              className="crayon-button w-full bg-[#6E1F2A] hover:bg-[#541720] text-white font-extrabold text-sm py-4 rounded-2xl shadow-md"
+              className="crayon-button w-full bg-[#6E1F2A] hover:bg-[#541720] text-white font-extrabold text-xs py-3.5 rounded-2xl shadow-sm"
               rightIcon={<Sparkles className="w-4 h-4" />}
             >
-              {loading ? "Synthesizing AI Form Schema..." : "Generate Form Schema with AI ✨"}
+              {loading ? "Generating Form Schema..." : "Generate Form with AI"}
             </Button>
           </form>
-        </motion.div>
+        </div>
 
-        {/* 4. LIVE AI SYNTHESIZER DISPLAY STAGE (WHEN LOADING) */}
-        <AnimatePresence>
-          {loading && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-[#1C1917] text-white rounded-3xl p-8 border-4 border-[#1C1917] shadow-2xl space-y-6 text-left"
-            >
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                <div className="flex items-center gap-3">
-                  <span className="w-3 h-3 rounded-full bg-red-400 animate-ping" />
-                  <span className="text-xs font-mono font-extrabold text-[#38BDF8] uppercase tracking-wider">
-                    AI NEURAL SYNTHESIZER RUNNING
-                  </span>
-                </div>
-                <span className="text-xs font-mono text-white/50">Stage {synthStep + 1} of 4</span>
-              </div>
-
-              {/* Progress Scrubber Bar */}
-              <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-[#6E1F2A] via-[#38BDF8] to-[#34D399]"
-                  initial={{ width: "10%" }}
-                  animate={{ width: `${(synthStep + 1) * 25}%` }}
-                  transition={{ duration: 0.4 }}
-                />
-              </div>
-
-              {/* Active Step Text */}
-              <div className="space-y-3 font-mono text-xs">
-                {synthStepsText.map((text, idx) => (
-                  <div
-                    key={idx}
-                    className={`p-3 rounded-xl flex items-center justify-between border transition-all ${
-                      idx === synthStep
-                        ? "bg-white/10 border-[#38BDF8] text-white font-bold"
-                        : idx < synthStep
-                        ? "bg-white/5 border-white/5 text-[#34D399]"
-                        : "opacity-30 border-transparent"
-                    }`}
-                  >
-                    <span>{text}</span>
-                    {idx < synthStep ? (
-                      <Check className="w-4 h-4 text-[#34D399]" />
-                    ) : idx === synthStep ? (
-                      <RefreshCw className="w-4 h-4 text-[#38BDF8] animate-spin" />
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* 5. SAMPLE AI SCHEMA PREVIEW SANDBOX */}
-        {!loading && (
+        {/* Minimalist Theme-Aligned Loading State */}
+        {loading && (
           <motion.div
-            initial={{ opacity: 0, y: 15 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="crayon-card bg-white p-6 sm:p-8 space-y-4"
+            className="crayon-card bg-white p-6 text-center space-y-3"
           >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold uppercase tracking-wider text-[#6E1F2A] flex items-center gap-2">
-                <Eye className="w-4 h-4" /> Real-time Schema Preview Simulation
-              </span>
-              <span className="text-xs font-mono text-[#78716C] font-bold">5 Questions Output</span>
+            <div className="w-10 h-10 rounded-xl bg-[#F9EFEF] text-[#6E1F2A] flex items-center justify-center mx-auto border border-[#F0C9CD]">
+              <Loader2 className="w-5 h-5 animate-spin" />
             </div>
-
-            <div className="p-4 bg-[#F6F3ED] rounded-2xl border-2 border-[#E6DFD5] space-y-3">
-              <div className="p-3 bg-white rounded-xl border border-[#E6DFD5] space-y-1">
-                <span className="text-[10px] font-bold text-[#6E1F2A] uppercase">Q1 • Rating Question</span>
-                <p className="font-semibold text-xs text-[#1C1917]">
-                  "Overall, how satisfied are you with our product performance?"
-                </p>
-              </div>
-              <div className="p-3 bg-white rounded-xl border border-[#E6DFD5] space-y-1">
-                <span className="text-[10px] font-bold text-[#6E1F2A] uppercase">Q2 • Multiple Choice</span>
-                <p className="font-semibold text-xs text-[#1C1917]">
-                  "Which features do you rely on most frequently during daily work?"
-                </p>
-              </div>
-            </div>
+            <p className="text-xs font-extrabold text-[#1C1917]">
+              Structuring your form questions...
+            </p>
+            <p className="text-[11px] text-[#78716C] font-medium">
+              You will be redirected to the editor as soon as generation completes.
+            </p>
           </motion.div>
         )}
       </main>
