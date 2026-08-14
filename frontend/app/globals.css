@@ -39,25 +39,25 @@
   background-color: #FFFFFF;
   border: 2px solid #E6DFD5;
   border-radius: 1.5rem;
-  box-shadow: 4px 4px 0px 0px #E6DFD5;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 2px 2px 0px 0px #E6DFD5;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .crayon-card:hover {
-  transform: translateY(-4px);
-  border-color: #6E1F2A;
-  box-shadow: 6px 6px 0px 0px #6E1F2A;
+  border-color: #D6CEC3;
+  box-shadow: 3px 3px 0px 0px #D6CEC3;
 }
 
 .crayon-card-brand {
-  background: linear-gradient(135deg, #FFFFFF 70%, #F9EFEF 100%);
-  border: 2px solid #F0C9CD;
-  box-shadow: 4px 4px 0px 0px #F0C9CD;
+  background: linear-gradient(135deg, #FFFFFF 75%, #FCFBF7 100%);
+  border: 2px solid #E6DFD5;
+  box-shadow: 2px 2px 0px 0px #E6DFD5;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .crayon-card-brand:hover {
-  border-color: #6E1F2A;
-  box-shadow: 6px 6px 0px 0px #6E1F2A;
+  border-color: #F0C9CD;
+  box-shadow: 3px 3px 0px 0px #F0C9CD;
 }
 
 .crayon-button {
@@ -68,27 +68,27 @@
 
 .crayon-button:hover {
   transform: translate(-1px, -1px);
-  box-shadow: 5px 5px 0px 0px #1C1917;
+  box-shadow: 4px 4px 0px 0px #1C1917;
 }
 
 .crayon-button:active {
-  transform: translate(2px, 2px);
+  transform: translate(1px, 1px);
   box-shadow: 1px 1px 0px 0px #1C1917;
 }
 
 /* Pulsing Demo Credentials Glow */
 @keyframes demo-pulse-glow {
   0% {
-    box-shadow: 0 0 0 0 rgba(110, 31, 42, 0.4), 4px 4px 0px 0px #6E1F2A;
-    border-color: #6E1F2A;
+    box-shadow: 0 0 0 0 rgba(110, 31, 42, 0.2), 3px 3px 0px 0px #F0C9CD;
+    border-color: #F0C9CD;
   }
   50% {
-    box-shadow: 0 0 25px 4px rgba(110, 31, 42, 0.25), 6px 6px 0px 0px #6E1F2A;
-    border-color: #6E1F2A;
+    box-shadow: 0 0 15px 2px rgba(110, 31, 42, 0.15), 3px 3px 0px 0px #F0C9CD;
+    border-color: #F0C9CD;
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(110, 31, 42, 0.4), 4px 4px 0px 0px #6E1F2A;
-    border-color: #6E1F2A;
+    box-shadow: 0 0 0 0 rgba(110, 31, 42, 0.2), 3px 3px 0px 0px #F0C9CD;
+    border-color: #F0C9CD;
   }
 }
 

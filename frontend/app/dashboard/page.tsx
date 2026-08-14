@@ -12,9 +12,10 @@ import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { Dialog } from "../../components/ui/dialog";
 import { Input } from "../../components/ui/input";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Search, MoreVertical, Edit3, Eye, BarChart3, MessageSquare,
-  Copy, Trash2, Sparkles, FileText, ExternalLink, Loader2
+  Copy, Trash2, Sparkles, FileText, ExternalLink, Loader2, Layers, Check, X, ArrowUpRight
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -84,7 +85,7 @@ export default function DashboardPage() {
         questions: [
           {
             type: "short_text",
-            title: "What is your name?",
+            title: "What is your full name?",
             required: true,
             position: 0
           }
@@ -105,15 +106,18 @@ export default function DashboardPage() {
       loadForms();
     } catch (err) {
       toastError("Failed to duplicate form.");
+    } finally {
+      setActiveMenuId(null);
     }
   };
 
   const handleRenameSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!renameForm) return;
+    if (!renameForm || !newTitle.trim()) return;
+
     try {
       setIsRenaming(true);
-      await api.updateForm(renameForm.id, { title: newTitle });
+      await api.updateForm(renameForm.id, { title: newTitle.trim() });
       success("Form renamed!");
       setRenameForm(null);
       loadForms();
@@ -124,12 +128,13 @@ export default function DashboardPage() {
     }
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteSubmit = async () => {
     if (!deleteTarget) return;
+
     try {
       setIsDeleting(true);
       await api.deleteForm(deleteTarget.id);
-      success("Form deleted permanently.");
+      success("Form moved to trash.");
       setDeleteTarget(null);
       loadForms();
     } catch (err) {
@@ -139,195 +144,258 @@ export default function DashboardPage() {
     }
   };
 
-  const handleNavigate = (formId: string, path: string) => {
-    setNavigatingId(formId);
-    router.push(path);
+  const copyFormLink = (slug: string) => {
+    const publicUrl = `${window.location.origin}/f/${slug}`;
+    navigator.clipboard.writeText(publicUrl);
+    success("Public form link copied to clipboard!");
+    setActiveMenuId(null);
   };
 
-  const filteredForms = forms.filter((f) =>
-    f.title.toLowerCase().includes(search.toLowerCase()) ||
-    (f.description && f.description.toLowerCase().includes(search.toLowerCase()))
-  );
+  const filteredForms = forms.filter((f) => {
+    const matchesSearch =
+      f.title.toLowerCase().includes(search.toLowerCase()) ||
+      (f.description && f.description.toLowerCase().includes(search.toLowerCase()));
+    return matchesSearch;
+  });
+
+  const publishedCount = forms.filter((f) => f.status === "published").length;
+  const draftCount = forms.filter((f) => f.status === "draft").length;
+  const archivedCount = forms.filter((f) => f.status === "archived").length;
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FCFBF8]">
+    <div className="min-h-screen flex flex-col bg-crayon-paper text-[#1C1917]">
       <Navbar />
 
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 py-8 w-full">
-        {/* Header section */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#191716] tracking-tight">Forms Dashboard</h1>
-            <p className="text-xs text-[#6F6A67] mt-1">
-              Manage your conversational forms, live published links, and submission analytics.
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 py-8 w-full space-y-8">
+        {/* 1. WORKSPACE HEADER BANNER */}
+        <div className="crayon-card bg-white p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F9EFEF] border border-[#F0C9CD] text-xs font-extrabold text-[#6E1F2A]">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Workspace Studio</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-[#1C1917] tracking-tight">
+              {user ? `${user.workspace_name || user.name}'s Forms` : "Workspace Dashboard"}
+            </h1>
+            <p className="text-sm text-[#78716C] font-medium max-w-xl">
+              Create, customize, and analyze conversational forms that capture maximum respondent engagement.
             </p>
+
+            {/* Quick Metrics Bar */}
+            <div className="flex flex-wrap items-center gap-4 pt-2 text-xs font-extrabold">
+              <span className="px-3 py-1.5 rounded-xl bg-[#F6F3ED] border border-[#E6DFD5] text-[#1C1917]">
+                Total Forms: <strong className="text-[#6E1F2A]">{forms.length}</strong>
+              </span>
+              <span className="px-3 py-1.5 rounded-xl bg-[#E6F4EA] border border-[#34D399] text-[#059669]">
+                Published: <strong>{publishedCount}</strong>
+              </span>
+              <span className="px-3 py-1.5 rounded-xl bg-[#FEF3C7] border border-[#FBBF24] text-[#D97706]">
+                Drafts: <strong>{draftCount}</strong>
+              </span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Link href="/templates" prefetch={true} onMouseEnter={() => prefetchRoute("/templates")}>
-              <Button variant="outline" size="sm" leftIcon={<FileText className="w-4 h-4" />}>
-                Templates
-              </Button>
-            </Link>
-            <Link href="/ai-generator" prefetch={true} onMouseEnter={() => prefetchRoute("/ai-generator")}>
-              <Button variant="secondary" size="sm" leftIcon={<Sparkles className="w-4 h-4 text-[#6E1F2A]" />}>
-                Generate with AI
-              </Button>
-            </Link>
+          {/* Quick Action Buttons */}
+          <div className="flex flex-wrap items-center gap-3">
             <Button
-              variant="primary"
-              size="sm"
+              size="lg"
+              className="crayon-button bg-[#6E1F2A] hover:bg-[#541720] text-white text-xs font-extrabold px-6 py-3 rounded-2xl shadow-sm"
               isLoading={isCreating}
               onClick={handleCreateBlank}
               leftIcon={<Plus className="w-4 h-4" />}
             >
-              Create Form
+              Blank Form
             </Button>
+            <Link href="/ai-generator">
+              <Button
+                variant="outline"
+                size="lg"
+                className="crayon-button bg-[#F9EFEF] text-[#6E1F2A] border-[#F0C9CD] hover:bg-[#F0C9CD] text-xs font-extrabold px-5 py-3 rounded-2xl"
+                leftIcon={<Sparkles className="w-4 h-4" />}
+              >
+                AI Generator
+              </Button>
+            </Link>
+            <Link href="/templates">
+              <Button
+                variant="outline"
+                size="lg"
+                className="crayon-button bg-white text-[#1C1917] hover:bg-[#F6F3ED] text-xs font-bold px-5 py-3 rounded-2xl"
+                leftIcon={<FileText className="w-4 h-4" />}
+              >
+                Templates
+              </Button>
+            </Link>
           </div>
         </div>
 
-        {/* Filter bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-4 border-b border-[#E7E2DE] mb-6">
-          <div className="flex items-center gap-1 bg-[#F5F2EF] p-1 rounded-xl w-full sm:w-auto">
-            {(["all", "draft", "published", "archived"] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
-                  activeTab === tab
-                    ? "bg-white text-[#191716] shadow-subtle"
-                    : "text-[#6F6A67] hover:text-[#191716]"
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
+        {/* 2. SEARCH BAR & STATUS FILTER TABS */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+          {/* Status Filter Tabs */}
+          <div className="flex items-center gap-1.5 bg-white p-1.5 rounded-2xl border-2 border-[#E6DFD5] shadow-xs overflow-x-auto no-scrollbar">
+            {(["all", "published", "draft", "archived"] as const).map((tab) => {
+              const count =
+                tab === "all"
+                  ? forms.length
+                  : tab === "published"
+                  ? publishedCount
+                  : tab === "draft"
+                  ? draftCount
+                  : archivedCount;
+
+              const isSelected = activeTab === tab;
+              return (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-4 py-2 rounded-xl text-xs font-extrabold capitalize transition-all flex items-center gap-2 whitespace-nowrap ${
+                    isSelected
+                      ? "bg-[#6E1F2A] text-white shadow-sm"
+                      : "text-[#78716C] hover:text-[#1C1917] hover:bg-[#F6F3ED]"
+                  }`}
+                >
+                  <span>{tab}</span>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
+                      isSelected ? "bg-white/20 text-white" : "bg-[#F6F3ED] text-[#78716C]"
+                    }`}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
-          <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 text-[#6F6A67] absolute left-3 top-2.5" />
+          {/* Search Input */}
+          <div className="relative w-full sm:w-72">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#78716C]" />
             <input
               type="text"
               placeholder="Search forms..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-[#E7E2DE] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6E1F2A]"
+              className="w-full pl-10 pr-9 py-2.5 bg-white border-2 border-[#E6DFD5] rounded-2xl text-xs font-semibold placeholder:text-[#78716C]/60 focus:outline-none focus:border-[#6E1F2A] transition-colors"
             />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#78716C] hover:text-[#1C1917]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Forms list / empty state */}
+        {/* 3. FORM CARDS GRID */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((n) => (
-              <div key={n} className="h-44 bg-[#F5F2EF] rounded-2xl animate-pulse" />
+            {[1, 2, 3, 4, 5, 6].map((n) => (
+              <div key={n} className="h-56 bg-[#F6F3ED] rounded-3xl border-2 border-[#E6DFD5] animate-pulse" />
             ))}
           </div>
         ) : filteredForms.length === 0 ? (
-          <div className="py-16 text-center border-2 border-dashed border-[#E7E2DE] rounded-2xl bg-white p-8">
-            <div className="w-12 h-12 rounded-2xl bg-[#F7EEF0] text-[#6E1F2A] flex items-center justify-center mx-auto mb-3">
-              <FileText className="w-6 h-6" />
+          /* Empty State */
+          <div className="crayon-card bg-white p-12 text-center space-y-4 max-w-md mx-auto my-12">
+            <div className="w-16 h-16 rounded-3xl bg-[#F9EFEF] text-[#6E1F2A] flex items-center justify-center mx-auto border-2 border-[#F0C9CD]">
+              <Layers className="w-8 h-8" />
             </div>
-            <h3 className="text-base font-bold text-[#191716]">No forms found</h3>
-            <p className="text-xs text-[#6F6A67] mt-1 max-w-sm mx-auto">
+            <h3 className="text-xl font-extrabold text-[#1C1917]">No forms found</h3>
+            <p className="text-xs text-[#78716C] font-medium leading-relaxed">
               {search
-                ? `No forms matching "${search}"`
-                : "Get started by creating a blank form, choosing a template, or generating one with AI."}
+                ? `No forms match your search query "${search}". Try clearing your search filter.`
+                : "You don't have any forms under this status tab yet."}
             </p>
-            <div className="mt-6 flex items-center justify-center gap-3">
-              <Button
-                variant="primary"
-                size="sm"
-                isLoading={isCreating}
-                onClick={handleCreateBlank}
-                leftIcon={<Plus className="w-4 h-4" />}
-              >
-                Create Form
-              </Button>
+            <div className="pt-2 flex justify-center gap-3">
+              {search ? (
+                <Button size="sm" variant="outline" onClick={() => setSearch("")}>
+                  Clear Search Filter
+                </Button>
+              ) : (
+                <Button size="sm" className="bg-[#6E1F2A] text-white" onClick={handleCreateBlank}>
+                  Create Blank Form
+                </Button>
+              )}
             </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredForms.map((form) => {
-              const isNav = navigatingId === form.id;
-              return (
-                <div
-                  key={form.id}
-                  onMouseEnter={() => {
-                    prefetchRoute(`/builder/${form.id}`);
-                    prefetchRoute(`/preview/${form.id}`);
-                    prefetchRoute(`/responses/${form.id}`);
-                    prefetchRoute(`/analytics/${form.id}`);
-                  }}
-                  className={`group relative bg-white border rounded-2xl p-5 shadow-subtle hover:shadow-card transition-all flex flex-col justify-between ${
-                    isNav ? "border-[#6E1F2A] bg-[#F7EEF0]/20 opacity-80" : "border-[#E7E2DE] hover:border-[#6E1F2A]/40"
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-start justify-between gap-2 mb-3">
-                      <Badge variant={form.status as any}>{form.status}</Badge>
+              const isMenuOpen = activeMenuId === form.id;
 
-                      {/* Actions Menu */}
+              return (
+                <motion.div
+                  key={form.id}
+                  layout
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  className="crayon-card crayon-card-brand p-6 flex flex-col justify-between relative group"
+                >
+                  {/* Card Header & Status Badge */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3 gap-2">
+                      <Badge
+                        variant={
+                          form.status === "published"
+                            ? "published"
+                            : form.status === "draft"
+                            ? "draft"
+                            : "archived"
+                        }
+                      >
+                        {form.status}
+                      </Badge>
+
+                      {/* Card Action Menu Toggle */}
                       <div className="relative">
                         <button
-                          onClick={() => setActiveMenuId(activeMenuId === form.id ? null : form.id)}
-                          className="p-1 rounded-lg text-[#6F6A67] hover:text-[#191716] hover:bg-[#F5F2EF] transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveMenuId(isMenuOpen ? null : form.id);
+                          }}
+                          className="p-1.5 rounded-xl border border-[#E6DFD5] bg-white text-[#78716C] hover:text-[#1C1917] hover:border-[#6E1F2A] transition-colors"
                         >
                           <MoreVertical className="w-4 h-4" />
                         </button>
 
-                        {activeMenuId === form.id && (
+                        {/* Action Dropdown Menu */}
+                        {isMenuOpen && (
                           <div
-                            className="absolute right-0 mt-1 w-48 bg-white border border-[#E7E2DE] rounded-xl shadow-modal py-1 z-30"
-                            onMouseLeave={() => setActiveMenuId(null)}
+                            className="absolute right-0 mt-2 w-48 bg-white border-2 border-[#E6DFD5] rounded-2xl shadow-xl py-1.5 z-40 text-xs font-bold text-[#1C1917]"
+                            onClick={(e) => e.stopPropagation()}
                           >
                             <button
                               onClick={() => {
                                 setActiveMenuId(null);
-                                handleNavigate(form.id, `/builder/${form.id}`);
+                                router.push(`/builder/${form.id}`);
                               }}
-                              className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#191716] hover:bg-[#F5F2EF]"
+                              className="w-full flex items-center gap-2.5 px-4 py-2 hover:bg-[#F6F3ED] transition-colors"
                             >
-                              <Edit3 className="w-3.5 h-3.5 text-[#6F6A67]" /> Edit Builder
+                              <Edit3 className="w-4 h-4 text-[#6E1F2A]" /> Edit in Builder
                             </button>
                             <button
                               onClick={() => {
                                 setActiveMenuId(null);
-                                handleNavigate(form.id, `/preview/${form.id}`);
+                                router.push(`/f/${form.slug}`);
                               }}
-                              className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#191716] hover:bg-[#F5F2EF]"
+                              className="w-full flex items-center gap-2.5 px-4 py-2 hover:bg-[#F6F3ED] transition-colors"
                             >
-                              <Eye className="w-3.5 h-3.5 text-[#6F6A67]" /> Preview
+                              <Eye className="w-4 h-4 text-[#6E1F2A]" /> Preview Mode
                             </button>
                             <button
-                              onClick={() => {
-                                setActiveMenuId(null);
-                                handleNavigate(form.id, `/responses/${form.id}`);
-                              }}
-                              className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#191716] hover:bg-[#F5F2EF]"
+                              onClick={() => copyFormLink(form.slug)}
+                              className="w-full flex items-center gap-2.5 px-4 py-2 hover:bg-[#F6F3ED] transition-colors"
                             >
-                              <MessageSquare className="w-3.5 h-3.5 text-[#6F6A67]" /> Responses
+                              <Copy className="w-4 h-4 text-[#6E1F2A]" /> Copy Public Link
                             </button>
                             <button
-                              onClick={() => {
-                                setActiveMenuId(null);
-                                handleNavigate(form.id, `/analytics/${form.id}`);
-                              }}
-                              className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#191716] hover:bg-[#F5F2EF]"
+                              onClick={() => handleDuplicate(form)}
+                              className="w-full flex items-center gap-2.5 px-4 py-2 hover:bg-[#F6F3ED] transition-colors"
                             >
-                              <BarChart3 className="w-3.5 h-3.5 text-[#6F6A67]" /> Analytics
-                            </button>
-
-                            <div className="my-1 border-t border-[#E7E2DE]" />
-
-                            <button
-                              onClick={() => {
-                                setActiveMenuId(null);
-                                handleDuplicate(form);
-                              }}
-                              className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#191716] hover:bg-[#F5F2EF]"
-                            >
-                              <Copy className="w-3.5 h-3.5 text-[#6F6A67]" /> Duplicate
+                              <Layers className="w-4 h-4 text-[#6E1F2A]" /> Duplicate Form
                             </button>
                             <button
                               onClick={() => {
@@ -335,103 +403,118 @@ export default function DashboardPage() {
                                 setRenameForm(form);
                                 setNewTitle(form.title);
                               }}
-                              className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#191716] hover:bg-[#F5F2EF]"
+                              className="w-full flex items-center gap-2.5 px-4 py-2 hover:bg-[#F6F3ED] transition-colors"
                             >
-                              <Edit3 className="w-3.5 h-3.5 text-[#6F6A67]" /> Rename
+                              <Edit3 className="w-4 h-4 text-[#6E1F2A]" /> Rename Title
                             </button>
-
-                            {form.status === "published" && (
-                              <a
-                                href={`/f/${form.slug}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#6E1F2A] hover:bg-[#F7EEF0]"
-                              >
-                                <ExternalLink className="w-3.5 h-3.5" /> Public Link
-                              </a>
-                            )}
-
-                            <div className="my-1 border-t border-[#E7E2DE]" />
-
                             <button
                               onClick={() => {
                                 setActiveMenuId(null);
                                 setDeleteTarget(form);
                               }}
-                              className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#B54747] hover:bg-[#F7EEF0]"
+                              className="w-full flex items-center gap-2.5 px-4 py-2 text-[#B54747] hover:bg-[#F9EFEF] transition-colors border-t border-[#E6DFD5]"
                             >
-                              <Trash2 className="w-3.5 h-3.5" /> Delete
+                              <Trash2 className="w-4 h-4" /> Move to Trash
                             </button>
                           </div>
                         )}
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => handleNavigate(form.id, `/builder/${form.id}`)}
-                      className="text-left w-full"
+                    {/* Title & Description */}
+                    <Link
+                      href={`/builder/${form.id}`}
+                      onMouseEnter={() => prefetchRoute(`/builder/${form.id}`)}
+                      className="block group-hover:text-[#6E1F2A] transition-colors"
                     >
-                      <h3 className="text-base font-bold text-[#191716] group-hover:text-[#6E1F2A] transition-colors truncate flex items-center gap-2">
-                        {isNav && <Loader2 className="w-4 h-4 text-[#6E1F2A] animate-spin shrink-0" />}
-                        <span>{form.title}</span>
+                      <h3 className="text-lg font-extrabold text-[#1C1917] line-clamp-1">
+                        {form.title}
                       </h3>
-                    </button>
-
-                    <p className="text-xs text-[#6F6A67] mt-1 line-clamp-2 min-h-[32px]">
+                    </Link>
+                    <p className="text-xs text-[#78716C] mt-1 line-clamp-2 font-medium">
                       {form.description || "No description provided."}
                     </p>
                   </div>
 
-                  <div className="mt-6 pt-4 border-t border-[#E7E2DE] flex items-center justify-between text-xs text-[#6F6A67]">
-                    <div className="flex items-center gap-3">
-                      <span>{form.question_count || 0} questions</span>
+                  {/* Card Bottom Meta Footer */}
+                  <div className="mt-6 pt-4 border-t border-[#E6DFD5] flex items-center justify-between text-xs font-semibold">
+                    <div className="flex items-center gap-3 text-[#78716C]">
+                      <span className="flex items-center gap-1 font-bold text-[#1C1917]">
+                        <MessageSquare className="w-3.5 h-3.5 text-[#6E1F2A]" />
+                        {form.question_count || 0} Qs
+                      </span>
                       <span>•</span>
-                      <span className="font-semibold text-[#191716]">{form.response_count || 0} responses</span>
+                      <span className="flex items-center gap-1 font-bold text-[#059669]">
+                        <BarChart3 className="w-3.5 h-3.5" />
+                        {form.response_count || 0} Responses
+                      </span>
                     </div>
 
-                    <button
-                      onClick={() => handleNavigate(form.id, `/builder/${form.id}`)}
-                      className="font-semibold text-[#6E1F2A] hover:underline flex items-center gap-1"
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="bg-white hover:bg-[#6E1F2A] hover:text-white hover:border-[#6E1F2A] text-xs font-bold transition-all rounded-xl"
+                      onClick={() => router.push(`/builder/${form.id}`)}
+                      rightIcon={<ArrowUpRight className="w-3.5 h-3.5" />}
                     >
-                      {isNav ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Build →"}
-                    </button>
+                      Open
+                    </Button>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>
         )}
       </main>
 
-      {/* Rename Dialog */}
-      <Dialog isOpen={!!renameForm} onClose={() => setRenameForm(null)} title="Rename Form">
-        <form onSubmit={handleRenameSubmit} className="space-y-4">
-          <Input label="Form Title" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} required />
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" size="sm" type="button" onClick={() => setRenameForm(null)}>
-              Cancel
-            </Button>
-            <Button variant="primary" size="sm" type="submit" isLoading={isRenaming}>
-              Save Title
-            </Button>
-          </div>
-        </form>
-      </Dialog>
+      {/* RENAME MODAL */}
+      {renameForm && (
+        <Dialog isOpen={!!renameForm} onClose={() => setRenameForm(null)} title="Rename Form">
+          <form onSubmit={handleRenameSubmit} className="space-y-4 pt-2">
+            <Input
+              label="New Form Title"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              placeholder="e.g. Q3 Customer Satisfaction Survey"
+              required
+              autoFocus
+            />
+            <div className="flex justify-end gap-3 pt-2">
+              <Button type="button" variant="outline" onClick={() => setRenameForm(null)}>
+                Cancel
+              </Button>
+              <Button type="submit" isLoading={isRenaming} className="bg-[#6E1F2A] text-white font-bold">
+                Save Changes
+              </Button>
+            </div>
+          </form>
+        </Dialog>
+      )}
 
-      {/* Delete Dialog */}
-      <Dialog isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Delete Form">
-        <p className="text-xs text-[#6F6A67] mb-4">
-          Delete <span className="font-bold text-[#191716]">&quot;{deleteTarget?.title}&quot;</span>? This will permanently delete the form, all version snapshots, and its submitted responses. This action cannot be undone.
-        </p>
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)}>
-            Cancel
-          </Button>
-          <Button variant="destructive" size="sm" onClick={handleDeleteConfirm} isLoading={isDeleting}>
-            Delete Permanently
-          </Button>
-        </div>
-      </Dialog>
+      {/* DELETE CONFIRMATION MODAL */}
+      {deleteTarget && (
+        <Dialog isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Delete Form">
+          <div className="space-y-4 pt-2 text-xs text-[#78716C]">
+            <p className="font-medium text-sm text-[#1C1917]">
+              Are you sure you want to delete <strong className="text-[#6E1F2A]">"{deleteTarget.title}"</strong>?
+            </p>
+            <p>This action will move the form to trash and hide public response submissions.</p>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button type="button" variant="outline" onClick={() => setDeleteTarget(null)}>
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                isLoading={isDeleting}
+                onClick={handleDeleteSubmit}
+                className="bg-[#B54747] hover:bg-[#963737] text-white font-bold"
+              >
+                Delete Form
+              </Button>
+            </div>
+          </div>
+        </Dialog>
+      )}
     </div>
   );
 }

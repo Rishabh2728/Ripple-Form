@@ -378,11 +378,7 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Feature Card 1 */}
-            <motion.div
-              whileHover={{ y: -4 }}
-              transition={{ duration: 0.2 }}
-              className="crayon-card crayon-card-brand p-6 space-y-4 flex flex-col justify-between"
-            >
+            <div className="crayon-card crayon-card-brand p-6 space-y-4 flex flex-col justify-between">
               <div className="space-y-3">
                 <div className="w-11 h-11 rounded-2xl bg-[#6E1F2A] text-white flex items-center justify-center font-bold shadow-sm">
                   <Sparkles className="w-5 h-5" />
@@ -403,14 +399,10 @@ export default function LandingPage() {
                   "How would you rate our platform?"
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* Feature Card 2 */}
-            <motion.div
-              whileHover={{ y: -4 }}
-              transition={{ duration: 0.2 }}
-              className="crayon-card crayon-card-brand p-6 space-y-4 flex flex-col justify-between"
-            >
+            <div className="crayon-card crayon-card-brand p-6 space-y-4 flex flex-col justify-between">
               <div className="space-y-3">
                 <div className="w-11 h-11 rounded-2xl bg-[#6E1F2A] text-white flex items-center justify-center font-bold shadow-sm">
                   <Zap className="w-5 h-5" />
@@ -431,14 +423,10 @@ export default function LandingPage() {
                   "Create customer survey..."
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* Feature Card 3 */}
-            <motion.div
-              whileHover={{ y: -4 }}
-              transition={{ duration: 0.2 }}
-              className="crayon-card crayon-card-brand p-6 space-y-4 flex flex-col justify-between"
-            >
+            <div className="crayon-card crayon-card-brand p-6 space-y-4 flex flex-col justify-between">
               <div className="space-y-3">
                 <div className="w-11 h-11 rounded-2xl bg-[#6E1F2A] text-white flex items-center justify-center font-bold shadow-sm">
                   <Command className="w-5 h-5" />
@@ -460,14 +448,10 @@ export default function LandingPage() {
                   <span>Palette: <strong className="text-[#6E1F2A]">⌘K</strong></span>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* Feature Card 4 */}
-            <motion.div
-              whileHover={{ y: -4 }}
-              transition={{ duration: 0.2 }}
-              className="crayon-card crayon-card-brand p-6 space-y-4 flex flex-col justify-between"
-            >
+            <div className="crayon-card crayon-card-brand p-6 space-y-4 flex flex-col justify-between">
               <div className="space-y-3">
                 <div className="w-11 h-11 rounded-2xl bg-[#6E1F2A] text-white flex items-center justify-center font-bold shadow-sm">
                   <Shield className="w-5 h-5" />
@@ -489,14 +473,10 @@ export default function LandingPage() {
                   <span className="font-bold">PASSED</span>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* Feature Card 5 */}
-            <motion.div
-              whileHover={{ y: -4 }}
-              transition={{ duration: 0.2 }}
-              className="crayon-card crayon-card-brand p-6 space-y-4 flex flex-col justify-between"
-            >
+            <div className="crayon-card crayon-card-brand p-6 space-y-4 flex flex-col justify-between">
               <div className="space-y-3">
                 <div className="w-11 h-11 rounded-2xl bg-[#6E1F2A] text-white flex items-center justify-center font-bold shadow-sm">
                   <BarChart3 className="w-5 h-5" />
@@ -518,14 +498,10 @@ export default function LandingPage() {
                   <span>Export: <strong className="text-[#6E1F2A]">CSV</strong></span>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* Feature Card 6 */}
-            <motion.div
-              whileHover={{ y: -4 }}
-              transition={{ duration: 0.2 }}
-              className="crayon-card crayon-card-brand p-6 space-y-4 flex flex-col justify-between"
-            >
+            <div className="crayon-card crayon-card-brand p-6 space-y-4 flex flex-col justify-between">
               <div className="space-y-3">
                 <div className="w-11 h-11 rounded-2xl bg-[#6E1F2A] text-white flex items-center justify-center font-bold shadow-sm">
                   <Palette className="w-5 h-5" />
@@ -550,37 +526,74 @@ export default function LandingPage() {
                   <span className="w-4 h-4 rounded-full bg-[#111111]" title="Minimal" />
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* 4. FOOTER */}
-      <footer className="py-10 bg-crayon-paper border-t border-[#E6DFD5] text-xs text-[#78716C]">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <RippleLogo className="w-6 h-6 text-[#6E1F2A]" />
-            <span className="font-extrabold text-lg text-[#1C1917] group-hover:text-[#6E1F2A] transition-colors">
-              Ripple
-            </span>
-          </Link>
+      {/* 4. REFINED MULTI-COLUMN FOOTER */}
+      <footer className="py-16 bg-crayon-paper border-t-2 border-[#E6DFD5] text-xs text-[#78716C]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 text-left">
+            {/* Column 1: Brand & Operational Status */}
+            <div className="space-y-4 md:col-span-1">
+              <Link href="/" className="flex items-center gap-2.5 group">
+                <div className="w-8 h-8 rounded-xl bg-[#6E1F2A] flex items-center justify-center text-white font-bold shadow-sm">
+                  <RippleLogo className="w-5 h-5 text-white" />
+                </div>
+                <span className="font-extrabold text-xl text-[#1C1917] group-hover:text-[#6E1F2A] transition-colors">
+                  Ripple
+                </span>
+              </Link>
+              <p className="text-xs text-[#78716C] font-medium leading-relaxed">
+                Next-generation conversational form builder designed for maximum respondent engagement and real-time conversion insights.
+              </p>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E6F4EA] border border-[#34D399] text-[11px] font-bold text-[#059669]">
+                <span className="w-2 h-2 rounded-full bg-[#059669] animate-pulse" />
+                <span>Systems 100% Operational</span>
+              </div>
+            </div>
 
-          <div className="flex items-center gap-6 font-bold">
-            <Link href="/templates" className="hover:text-[#6E1F2A] transition-colors">
-              Templates
-            </Link>
-            <Link href="/ai-generator" className="hover:text-[#6E1F2A] transition-colors">
-              AI Generator
-            </Link>
-            <Link href="/order" className="hover:text-[#6E1F2A] transition-colors">
-              Pricing & Orders
-            </Link>
-            <Link href="/login" className="hover:text-[#6E1F2A] transition-colors">
-              Sign In
-            </Link>
+            {/* Column 2: Core Platform Features */}
+            <div className="space-y-3">
+              <h4 className="font-extrabold text-[#1C1917] text-xs uppercase tracking-wider">Product Platform</h4>
+              <ul className="space-y-2 font-semibold">
+                <li><Link href="/templates" className="hover:text-[#6E1F2A] transition-colors">Form Templates</Link></li>
+                <li><Link href="/ai-generator" className="hover:text-[#6E1F2A] transition-colors">AI Form Generator</Link></li>
+                <li><Link href="/f/saas-customer-feedback" className="hover:text-[#6E1F2A] transition-colors">Conversational Flow</Link></li>
+                <li><Link href="/shortcuts" className="hover:text-[#6E1F2A] transition-colors">Keyboard Hotkeys (⌘K)</Link></li>
+              </ul>
+            </div>
+
+            {/* Column 3: Resources & Docs */}
+            <div className="space-y-3">
+              <h4 className="font-extrabold text-[#1C1917] text-xs uppercase tracking-wider">Resources & Guide</h4>
+              <ul className="space-y-2 font-semibold">
+                <li><Link href="/shortcuts" className="hover:text-[#6E1F2A] transition-colors">Command Palette</Link></li>
+                <li><Link href="/order" className="hover:text-[#6E1F2A] transition-colors">Pricing & Plans</Link></li>
+                <li><Link href="/login" className="hover:text-[#6E1F2A] transition-colors">Demo Creator Login</Link></li>
+              </ul>
+            </div>
+
+            {/* Column 4: Account & Workspace */}
+            <div className="space-y-3">
+              <h4 className="font-extrabold text-[#1C1917] text-xs uppercase tracking-wider">Account & Workspace</h4>
+              <ul className="space-y-2 font-semibold">
+                <li><Link href="/login" className="hover:text-[#6E1F2A] transition-colors">Sign In to Dashboard</Link></li>
+                <li><Link href="/register" className="hover:text-[#6E1F2A] transition-colors">Create Free Account</Link></li>
+                <li><Link href="/settings" className="hover:text-[#6E1F2A] transition-colors">Profile Settings</Link></li>
+              </ul>
+            </div>
           </div>
 
-          <p>© 2026 Ripple Inc. All rights reserved.</p>
+          <div className="pt-8 border-t border-[#E6DFD5] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-semibold">
+            <p>© 2026 Ripple Inc. All rights reserved.</p>
+            <div className="flex gap-6">
+              <Link href="/templates" className="hover:text-[#6E1F2A]">Privacy Policy</Link>
+              <Link href="/templates" className="hover:text-[#6E1F2A]">Terms of Service</Link>
+              <Link href="/templates" className="hover:text-[#6E1F2A]">Security Snapshot</Link>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
