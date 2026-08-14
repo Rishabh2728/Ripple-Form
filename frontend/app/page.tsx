@@ -8,8 +8,8 @@ import { Navbar } from "../components/Navbar";
 import { RippleLogo } from "../components/RippleLogo";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowRight, Sparkles, Shield, Zap, CheckCircle2, Command, Star,
-  MessageSquare, BarChart3, Layers, Palette, Eye, ArrowUpRight, Lock, Check
+  ArrowRight, Sparkles, Shield, Zap, Command, Star,
+  Play, Pause, RefreshCw, BarChart3, Palette, ArrowUpRight, Lock, Check
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 
@@ -17,395 +17,565 @@ export default function LandingPage() {
   const router = useRouter();
   const { user, fetchUser } = useAuthStore();
 
-  const [activeDemoQ, setActiveDemoQ] = useState(0);
-  const [demoAnswered, setDemoAnswered] = useState<Record<number, any>>({});
+  // Video-like Showcase Player State
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [videoStep, setVideoStep] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  // Bottom Interactive Feature Card State
+  const [activeCardPreview, setActiveCardPreview] = useState<number | null>(null);
 
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
 
-  const demoQuestions = [
+  // Video showcase auto-advancing timer
+  useEffect(() => {
+    if (!isPlaying) return;
+
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          setVideoStep((step) => (step + 1) % 4);
+          return 0;
+        }
+        return prev + 2.5;
+      });
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [isPlaying]);
+
+  const videoSteps = [
     {
-      type: "rating",
-      title: "How would you rate your team's form response rates?",
-      subtitle: "1 star = Very Low, 5 stars = High Conversion",
-      options: [1, 2, 3, 4, 5]
+      id: 0,
+      title: "01. AI Schema Generation",
+      tagline: "Prompt to Complete Form Schema in Seconds",
+      badge: "AI AUTOMATION",
+      content: {
+        prompt: "Create a customer feedback survey for our SaaS product launch.",
+        outputQuestions: [
+          "How satisfied are you with our interface design? (Rating)",
+          "Which subscription plan are you on? (Multiple Choice)",
+          "What is the single biggest improvement you'd like to see? (Long Text)"
+        ]
+      }
     },
     {
-      type: "choice",
-      title: "What is your primary goal for form creation?",
-      subtitle: "Select your main business objective",
-      options: ["Lead Generation", "Customer Feedback", "Event Registration", "Employee Surveys"]
+      id: 1,
+      title: "02. 3-Panel Fast Builder",
+      tagline: "Drag & Drop, Health Auditor & Autosave",
+      badge: "CREATOR STUDIO",
+      content: {
+        healthScore: "100% Health Pass",
+        auditItems: [
+          { check: "All questions have descriptive titles", pass: true },
+          { check: "Multiple choice option list complete", pass: true },
+          { check: "Required validations configured", pass: true }
+        ]
+      }
     },
     {
-      type: "yesno",
-      title: "Do you want AI to generate form structures automatically?",
-      subtitle: "Instant AI generation from plain text prompts",
-      options: ["Yes, absolutely", "I prefer manual control"]
+      id: 2,
+      title: "03. Conversational Flow",
+      tagline: "One Question at a Time with Hotkeys",
+      badge: "RESPONDENT UX",
+      content: {
+        activeQ: "Which plan fits your team size best?",
+        hotkeyTip: "Press 1 for Starter, 2 for Pro Team, 3 for Enterprise",
+        choices: ["1. Starter (1-5 members)", "2. Pro Team (6-25 members)", "3. Enterprise Unlimited"]
+      }
+    },
+    {
+      id: 3,
+      title: "04. Real-time Funnel Analytics",
+      tagline: "Completion Funnels & Instant CSV Export",
+      badge: "ANALYTICS ENGINE",
+      content: {
+        views: "1,420 Views",
+        submissions: "1,180 Responses",
+        completionRate: "83.1% Conversion",
+        avgTime: "1m 12s Avg Duration"
+      }
     }
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FCFBF8] text-[#191716] overflow-x-hidden">
+    <div className="min-h-screen flex flex-col bg-crayon-paper text-[#1C1917] overflow-x-hidden">
       <Navbar />
 
-      {/* 1. Hero Section */}
-      <section className="relative pt-16 pb-20 md:pt-24 md:pb-32 px-4 sm:px-6 max-w-7xl mx-auto w-full flex flex-col items-center text-center">
-        {/* Subtle background glow */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#6E1F2A]/5 rounded-full blur-3xl pointer-events-none -z-10" />
+      {/* 1. COMPACT & BALANCED HERO SECTION */}
+      <section className="relative pt-8 pb-10 md:pt-12 md:pb-16 px-4 sm:px-6 max-w-6xl mx-auto w-full flex flex-col items-center text-center">
+        {/* Soft pastel halo glow */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[480px] h-[480px] bg-gradient-to-tr from-[#F9EFEF] via-[#FEF3C7] to-[#E0F2FE] rounded-full blur-3xl opacity-50 pointer-events-none -z-10" />
 
-        {/* Animated Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#F7EEF0] border border-[#F0C9CD] text-xs font-bold text-[#6E1F2A] mb-6 shadow-sm"
-        >
-          <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-          <span>Ripple 2.0 — Next-Gen Conversational Form Platform</span>
-        </motion.div>
-
-        {/* Hero Title */}
+        {/* Compact Hero Title */}
         <motion.h1
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-[#191716] tracking-tight leading-[1.1] max-w-4xl"
+          transition={{ duration: 0.5 }}
+          className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#1C1917] tracking-tight leading-[1.12] max-w-4xl"
         >
-          Conversational Forms that <br />
-          <span className="text-[#6E1F2A] underline decoration-[#6E1F2A]/30 underline-offset-8">
-            Feel Like Human Dialog.
+          Conversational Forms that Feel Like <br />
+          <span className="text-[#6E1F2A] relative inline-block">
+            Natural Human Dialog.
+            <svg className="absolute -bottom-1.5 left-0 w-full h-2.5 text-[#F0C9CD]" viewBox="0 0 200 8" preserveAspectRatio="none">
+              <path d="M0,5 Q50,0 100,5 T200,5" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+            </svg>
           </span>
         </motion.h1>
 
-        {/* Hero Subtitle */}
+        {/* Compact Hero Subtitle */}
         <motion.p
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="mt-6 text-base sm:text-xl text-[#6F6A67] max-w-2xl font-normal leading-relaxed"
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mt-5 text-base sm:text-lg text-[#78716C] max-w-2xl font-medium leading-relaxed"
         >
-          Capture up to 3.4x more responses with one-question-at-a-time flow, keyboard shortcuts, AI generation, and instant real-time analytics.
+          Capture up to 3.4x more responses with one-question-at-a-time focus, keyboard hotkeys, instant AI prompts, and real-time funnel analytics.
         </motion.p>
 
-        {/* Hero Call to Action Buttons */}
+        {/* Hero Action Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-8 flex flex-wrap items-center justify-center gap-4"
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mt-7 flex flex-wrap items-center justify-center gap-4"
         >
           <Link href={user ? "/dashboard" : "/register"}>
-            <Button size="lg" className="shadow-md text-sm font-bold px-8 py-3 bg-[#6E1F2A] hover:bg-[#581821] text-white" rightIcon={<ArrowRight className="w-4 h-4" />}>
-              {user ? "Go to Dashboard" : "Start Building Free"}
+            <Button size="lg" className="crayon-button bg-[#6E1F2A] hover:bg-[#541720] text-white text-sm font-extrabold px-7 py-3.5 rounded-2xl shadow-md" rightIcon={<ArrowRight className="w-4 h-4" />}>
+              {user ? "Open Dashboard" : "Start Building Free"}
             </Button>
           </Link>
           <Link href="/f/saas-customer-feedback">
-            <Button variant="outline" size="lg" className="text-sm font-semibold border-[#E7E2DE] hover:bg-[#F5F2EF]" rightIcon={<ArrowUpRight className="w-4 h-4" />}>
-              Experience Live Demo Form
+            <Button variant="outline" size="lg" className="crayon-button bg-white text-[#1C1917] hover:bg-[#F6F3ED] text-sm font-bold px-6 py-3.5 rounded-2xl" rightIcon={<ArrowUpRight className="w-4 h-4" />}>
+              Explore Live Demo Form
             </Button>
           </Link>
         </motion.div>
 
-        {/* Demo Account Quick Banner */}
+        {/* ANIMATED HIGH-NOTICED INSTANT DEMO CREATOR CREDENTIALS CARD */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="mt-8 p-4 bg-[#FCFBF8] border border-[#E7E2DE] rounded-2xl text-xs text-[#191716] max-w-md w-full text-left shadow-card"
+          initial={{ opacity: 0, scale: 0.95, y: 15 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="mt-8 p-5 bg-white border-2 border-[#6E1F2A] rounded-3xl text-sm text-[#1C1917] max-w-md w-full text-left animate-demo-card"
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="font-bold text-[#6E1F2A] flex items-center gap-1.5">
-              <Lock className="w-3.5 h-3.5" /> Instant Demo Account Access
+          <div className="flex items-center justify-between mb-2.5">
+            <span className="font-extrabold text-[#6E1F2A] flex items-center gap-2 text-xs uppercase tracking-wider">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#6E1F2A] animate-ping" />
+              <Lock className="w-4 h-4" /> Instant Demo Creator Credentials
             </span>
-            <Link href="/login" className="text-[11px] font-bold text-[#6E1F2A] hover:underline">
+            <Link href="/login" className="text-xs font-extrabold text-[#6E1F2A] hover:underline bg-[#F9EFEF] px-2.5 py-1 rounded-lg border border-[#F0C9CD]">
               Sign In →
             </Link>
           </div>
-          <div className="flex justify-between items-center bg-[#F5F2EF] p-2.5 rounded-xl font-mono text-[11px]">
-            <span>Email: <strong className="text-[#191716]">demo@ripple.com</strong></span>
-            <span>Pass: <strong className="text-[#191716]">password123</strong></span>
+          <div className="flex justify-between items-center bg-[#F6F3ED] p-3 rounded-2xl font-mono text-xs font-semibold border border-[#E6DFD5]">
+            <span>Email: <strong className="text-[#6E1F2A]">demo@ripple.com</strong></span>
+            <span>Password: <strong className="text-[#6E1F2A]">password123</strong></span>
           </div>
-          <p className="text-[11px] text-[#6F6A67] mt-2">
-            Pre-loaded with 5 forms, version snapshots, and 25+ realistic submission entries.
+          <p className="text-xs text-[#78716C] mt-2.5 font-medium">
+            ⚡ Pre-loaded with 5 forms, version snapshots, and 25+ realistic submission entries.
           </p>
-        </motion.div>
-
-        {/* 2. Interactive Animated Product Canvas Sandbox */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          className="mt-16 w-full max-w-4xl bg-white border border-[#E7E2DE] rounded-3xl shadow-modal overflow-hidden text-left"
-        >
-          {/* Mock Browser Header Bar */}
-          <div className="bg-[#F5F2EF] px-5 py-3 border-b border-[#E7E2DE] flex items-center justify-between text-xs text-[#6F6A67]">
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-[#B54747]" />
-              <span className="w-3 h-3 rounded-full bg-[#FEF3C7]" />
-              <span className="w-3 h-3 rounded-full bg-[#2F7D5B]" />
-              <span className="font-mono text-[11px] ml-2 text-[#191716]">https://ripple.app/f/customer-survey</span>
-            </div>
-            <div className="flex items-center gap-2 font-mono text-[10px] bg-white px-2.5 py-1 rounded-lg border border-[#E7E2DE]">
-              <span>Interactive Sandbox</span>
-            </div>
-          </div>
-
-          {/* Interactive Question Card */}
-          <div className="p-8 sm:p-12 bg-[#FCFBF8] min-h-[320px] flex flex-col justify-between">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeDemoQ}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.25 }}
-                className="space-y-6"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#6E1F2A] uppercase tracking-wider">
-                    Question 0{activeDemoQ + 1} of 03
-                  </span>
-                  <span className="text-xs font-mono text-[#6F6A67]">Press Enter ↵</span>
-                </div>
-
-                <div>
-                  <h3 className="text-xl sm:text-2xl font-extrabold text-[#191716]">
-                    {demoQuestions[activeDemoQ].title}
-                  </h3>
-                  <p className="text-xs text-[#6F6A67] mt-1">
-                    {demoQuestions[activeDemoQ].subtitle}
-                  </p>
-                </div>
-
-                {/* Question Type Mock Options */}
-                <div className="pt-2">
-                  {demoQuestions[activeDemoQ].type === "rating" && (
-                    <div className="flex gap-3">
-                      {demoQuestions[activeDemoQ].options.map((num) => {
-                        const isSelected = demoAnswered[activeDemoQ] === num;
-                        return (
-                          <button
-                            key={num}
-                            onClick={() => setDemoAnswered({ ...demoAnswered, [activeDemoQ]: num })}
-                            className={`w-12 h-12 rounded-2xl border text-sm font-bold flex flex-col items-center justify-center transition-all ${
-                              isSelected
-                                ? "bg-[#6E1F2A] text-white border-[#6E1F2A] shadow-md scale-105"
-                                : "bg-white border-[#E7E2DE] hover:border-[#6E1F2A] text-[#191716]"
-                            }`}
-                          >
-                            <Star className={`w-4 h-4 ${isSelected ? "fill-white" : "text-[#B7791F]"}`} />
-                            <span className="text-[10px] mt-0.5">{num}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {demoQuestions[activeDemoQ].type === "choice" && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {demoQuestions[activeDemoQ].options.map((opt, idx) => {
-                        const isSelected = demoAnswered[activeDemoQ] === opt;
-                        return (
-                          <button
-                            key={opt}
-                            onClick={() => setDemoAnswered({ ...demoAnswered, [activeDemoQ]: opt })}
-                            className={`p-3.5 rounded-xl border text-xs font-bold text-left flex items-center justify-between transition-all ${
-                              isSelected
-                                ? "bg-[#6E1F2A] text-white border-[#6E1F2A] shadow-md"
-                                : "bg-white border-[#E7E2DE] hover:border-[#6E1F2A] text-[#191716]"
-                            }`}
-                          >
-                            <div className="flex items-center gap-2">
-                              <span className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-mono ${
-                                isSelected ? "bg-white/20 text-white" : "bg-[#F5F2EF] text-[#6E1F2A]"
-                              }`}>
-                                {idx + 1}
-                              </span>
-                              <span>{opt}</span>
-                            </div>
-                            {isSelected && <Check className="w-4 h-4" />}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {demoQuestions[activeDemoQ].type === "yesno" && (
-                    <div className="flex gap-4">
-                      {demoQuestions[activeDemoQ].options.map((opt) => {
-                        const isSelected = demoAnswered[activeDemoQ] === opt;
-                        return (
-                          <button
-                            key={opt}
-                            onClick={() => setDemoAnswered({ ...demoAnswered, [activeDemoQ]: opt })}
-                            className={`flex-1 py-4 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
-                              isSelected
-                                ? "bg-[#6E1F2A] text-white border-[#6E1F2A] shadow-md"
-                                : "bg-white border-[#E7E2DE] hover:border-[#6E1F2A] text-[#191716]"
-                            }`}
-                          >
-                            {opt}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            </AnimatePresence>
-
-            {/* Sandbox Step Navigation */}
-            <div className="pt-6 border-t border-[#E7E2DE] flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {activeDemoQ > 0 && (
-                  <button
-                    onClick={() => setActiveDemoQ(activeDemoQ - 1)}
-                    className="px-3 py-1.5 rounded-lg border border-[#E7E2DE] text-xs font-semibold text-[#6F6A67] hover:text-[#191716]"
-                  >
-                    ← Previous
-                  </button>
-                )}
-              </div>
-
-              <button
-                onClick={() => setActiveDemoQ((activeDemoQ + 1) % demoQuestions.length)}
-                className="px-5 py-2 bg-[#6E1F2A] text-white text-xs font-bold rounded-xl flex items-center gap-2 shadow-sm hover:bg-[#581821] transition-colors"
-              >
-                <span>{activeDemoQ === demoQuestions.length - 1 ? "Restart Demo ↺" : "Next Question →"}</span>
-              </button>
-            </div>
-          </div>
         </motion.div>
       </section>
 
-      {/* 3. Comprehensive Feature Grid Section */}
-      <section className="py-20 bg-white border-t border-b border-[#E7E2DE] px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto space-y-16">
+      {/* 2. VIDEO-LIKE INTERACTIVE SHOWCASE COMPONENT */}
+      <section className="py-12 px-4 sm:px-6 max-w-5xl mx-auto w-full">
+        <div className="text-center mb-8 space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F9EFEF] border border-[#F0C9CD] text-xs font-extrabold text-[#6E1F2A]">
+            <Play className="w-3.5 h-3.5 fill-current" />
+            <span>INTERACTIVE VIDEO DEMO SHOWCASE</span>
+          </div>
+          <h2 className="text-2xl sm:text-4xl font-extrabold text-[#1C1917]">
+            Watch Ripple in Action
+          </h2>
+          <p className="text-sm text-[#78716C] max-w-lg mx-auto font-medium">
+            Experience the complete flow from AI schema generation to conversational responses and real-time analytics.
+          </p>
+        </div>
+
+        {/* Video Player Frame */}
+        <div className="bg-[#1C1917] rounded-3xl border-4 border-[#1C1917] shadow-2xl overflow-hidden text-white text-left">
+          {/* Video Header Controls */}
+          <div className="bg-[#292524] px-5 py-3.5 border-b border-white/10 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="flex items-center gap-2 text-xs font-extrabold bg-[#6E1F2A] px-3 py-1 rounded-full text-white tracking-wide">
+                <span className="w-2 h-2 rounded-full bg-red-400 animate-ping" />
+                LIVE DEMO
+              </span>
+              <span className="text-xs font-mono text-white/80">
+                {videoSteps[videoStep].title} — {videoSteps[videoStep].tagline}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsPlaying(!isPlaying)}
+                className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
+                title={isPlaying ? "Pause Demo" : "Play Demo"}
+              >
+                {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 fill-current" />}
+              </button>
+              <button
+                onClick={() => { setVideoStep(0); setProgress(0); }}
+                className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
+                title="Restart Showcase"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Video Progress Scrubber Bar */}
+          <div className="w-full bg-white/10 h-1.5">
+            <motion.div
+              className="h-full bg-[#6E1F2A]"
+              style={{ width: `${progress}%` }}
+              transition={{ ease: "linear" }}
+            />
+          </div>
+
+          {/* Video Player Display Screen */}
+          <div className="p-6 sm:p-10 min-h-[340px] flex flex-col justify-between bg-gradient-to-br from-[#1C1917] via-[#292524] to-[#1C1917]">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={videoStep}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.25 }}
+                className="space-y-5"
+              >
+                {/* Step Badge */}
+                <span className="inline-block px-3 py-1 rounded-lg bg-white/10 text-xs font-mono font-bold text-[#F0C9CD]">
+                  {videoSteps[videoStep].badge}
+                </span>
+
+                {/* Step 0: AI Generator Content */}
+                {videoStep === 0 && (
+                  <div className="space-y-4">
+                    <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 font-mono text-xs sm:text-sm">
+                      <span className="text-[#F0C9CD] font-bold">Prompt: </span>
+                      <span>"{videoSteps[0].content.prompt}"</span>
+                    </div>
+
+                    <div className="space-y-2">
+                      <span className="text-xs font-bold uppercase tracking-wider text-white/50">Generated Schema Questions:</span>
+                      {(videoSteps[0].content as any).outputQuestions?.map((q: string, idx: number) => (
+                        <motion.div
+                          key={idx}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.15 }}
+                          className="p-3 rounded-xl bg-white/10 text-xs font-semibold flex items-center gap-3 border border-white/5"
+                        >
+                          <Check className="w-4 h-4 text-[#34D399]" />
+                          <span>{q}</span>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 1: 3-Panel Builder Content */}
+                {videoStep === 1 && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3.5 rounded-2xl bg-[#34D399]/10 border border-[#34D399]/30">
+                      <span className="text-xs sm:text-sm font-bold text-[#34D399]">Health Auditor Diagnosis:</span>
+                      <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-[#34D399] text-[#1C1917]">
+                        {(videoSteps[1].content as any).healthScore}
+                      </span>
+                    </div>
+
+                    <div className="space-y-2">
+                      {(videoSteps[1].content as any).auditItems?.map((item: any, idx: number) => (
+                        <div key={idx} className="p-3 rounded-xl bg-white/5 text-xs font-semibold flex items-center justify-between border border-white/5">
+                          <span>{item.check}</span>
+                          <span className="text-[#34D399] font-bold text-[11px] uppercase">PASSED</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 2: Conversational Flow Content */}
+                {videoStep === 2 && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg sm:text-xl font-extrabold text-white">
+                      {(videoSteps[2].content as any).activeQ}
+                    </h3>
+                    <p className="text-xs font-mono text-[#F0C9CD]">
+                      ⚡ {(videoSteps[2].content as any).hotkeyTip}
+                    </p>
+                    <div className="space-y-2">
+                      {(videoSteps[2].content as any).choices?.map((choice: string, idx: number) => (
+                        <div key={idx} className="p-3 rounded-xl bg-white/10 hover:bg-[#6E1F2A] text-xs font-bold transition-all cursor-pointer border border-white/10 flex items-center justify-between">
+                          <span>{choice}</span>
+                          <span className="text-xs font-mono opacity-60">Key [{idx + 1}]</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 3: Analytics Content */}
+                {videoStep === 3 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 text-center">
+                      <span className="text-xs text-white/60 font-semibold block uppercase">Total Views</span>
+                      <span className="text-xl sm:text-2xl font-extrabold text-white mt-1 block">{videoSteps[3].content.views}</span>
+                    </div>
+                    <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 text-center">
+                      <span className="text-xs text-white/60 font-semibold block uppercase">Submissions</span>
+                      <span className="text-xl sm:text-2xl font-extrabold text-[#F0C9CD] mt-1 block">{videoSteps[3].content.submissions}</span>
+                    </div>
+                    <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 text-center">
+                      <span className="text-xs text-white/60 font-semibold block uppercase">Completion</span>
+                      <span className="text-xl sm:text-2xl font-extrabold text-[#34D399] mt-1 block">{videoSteps[3].content.completionRate}</span>
+                    </div>
+                    <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 text-center">
+                      <span className="text-xs text-white/60 font-semibold block uppercase">Avg Time</span>
+                      <span className="text-xl sm:text-2xl font-extrabold text-[#38BDF8] mt-1 block">{videoSteps[3].content.avgTime}</span>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Video Step Switcher Tabs */}
+            <div className="pt-5 border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {videoSteps.map((step, idx) => (
+                <button
+                  key={step.id}
+                  onClick={() => { setVideoStep(idx); setProgress(0); setIsPlaying(false); }}
+                  className={`p-2.5 rounded-xl text-xs font-bold text-left transition-all ${
+                    videoStep === idx
+                      ? "bg-[#6E1F2A] text-white shadow-md"
+                      : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <span className="block text-[10px] font-mono opacity-70">STEP 0{idx + 1}</span>
+                  <span className="truncate block mt-0.5">{step.title.split(". ")[1]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. REFINED & INTERACTIVE FEATURE SHOWCASE CARDS (BRAND COLOR PALETTE) */}
+      <section className="py-20 bg-white border-t border-b border-[#E6DFD5] px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto space-y-12">
           <div className="text-center space-y-3 max-w-2xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#191716] tracking-tight">
-              Engineered for Highest Completion Rates
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#1C1917] tracking-tight">
+              Designed for Higher Conversions
             </h2>
-            <p className="text-sm text-[#6F6A67] leading-relaxed">
-              Every detail is meticulously crafted to eliminate form fatigue, speed up respondent entry, and preserve data integrity.
+            <p className="text-base text-[#78716C] font-medium leading-relaxed">
+              Every detail is engineered to eliminate form fatigue, speed up respondent entry, and preserve data integrity.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Feature 1 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Feature Card 1 */}
             <motion.div
               whileHover={{ y: -4 }}
               transition={{ duration: 0.2 }}
-              className="p-6 bg-[#FCFBF8] border border-[#E7E2DE] rounded-2xl space-y-3 shadow-subtle hover:border-[#6E1F2A]/40"
+              className="crayon-card crayon-card-brand p-6 space-y-4 flex flex-col justify-between"
             >
-              <div className="w-10 h-10 rounded-xl bg-[#F7EEF0] text-[#6E1F2A] flex items-center justify-center font-bold">
-                <Sparkles className="w-5 h-5" />
+              <div className="space-y-3">
+                <div className="w-11 h-11 rounded-2xl bg-[#6E1F2A] text-white flex items-center justify-center font-bold shadow-sm">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-extrabold text-[#1C1917]">Conversational One-Q Flow</h3>
+                <p className="text-xs text-[#78716C] font-medium leading-relaxed">
+                  Presents one question at a time with smooth Framer Motion slide transitions and progress tracking so respondents stay focused.
+                </p>
               </div>
-              <h3 className="text-base font-bold text-[#191716]">Typeform-Style Conversational UX</h3>
-              <p className="text-xs text-[#6F6A67] leading-relaxed">
-                Presents one question at a time with smooth Framer Motion slide transitions and progress tracking so respondents never feel overwhelmed.
-              </p>
+
+              {/* Interactive Video-like Mini Demo */}
+              <div className="p-3 bg-white border border-[#E6DFD5] rounded-xl text-xs space-y-2">
+                <div className="flex items-center justify-between text-[11px] text-[#6E1F2A] font-bold">
+                  <span>Question 1 of 3</span>
+                  <Play className="w-3 h-3 fill-current" />
+                </div>
+                <div className="p-2 bg-[#F6F3ED] rounded-lg font-semibold text-[11px]">
+                  "How would you rate our platform?"
+                </div>
+              </div>
             </motion.div>
 
-            {/* Feature 2 */}
+            {/* Feature Card 2 */}
             <motion.div
               whileHover={{ y: -4 }}
               transition={{ duration: 0.2 }}
-              className="p-6 bg-[#FCFBF8] border border-[#E7E2DE] rounded-2xl space-y-3 shadow-subtle hover:border-[#6E1F2A]/40"
+              className="crayon-card crayon-card-brand p-6 space-y-4 flex flex-col justify-between"
             >
-              <div className="w-10 h-10 rounded-xl bg-[#F7EEF0] text-[#6E1F2A] flex items-center justify-center font-bold">
-                <Zap className="w-5 h-5" />
+              <div className="space-y-3">
+                <div className="w-11 h-11 rounded-2xl bg-[#6E1F2A] text-white flex items-center justify-center font-bold shadow-sm">
+                  <Zap className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-extrabold text-[#1C1917]">AI Schema Generator</h3>
+                <p className="text-xs text-[#78716C] font-medium leading-relaxed">
+                  Describe your desired form in plain English prompts and let AI structure questions, choices, and validation settings instantly.
+                </p>
               </div>
-              <h3 className="text-base font-bold text-[#191716]">AI Form Generator</h3>
-              <p className="text-xs text-[#6F6A67] leading-relaxed">
-                Describe your desired form in plain English prompts and let AI structure questions, choices, and validation settings instantly.
-              </p>
+
+              {/* Interactive Video-like Mini Demo */}
+              <div className="p-3 bg-white border border-[#E6DFD5] rounded-xl text-xs space-y-2">
+                <div className="flex items-center justify-between text-[11px] text-[#6E1F2A] font-bold">
+                  <span>AI Prompt Simulator</span>
+                  <Zap className="w-3 h-3" />
+                </div>
+                <div className="p-2 bg-[#F6F3ED] rounded-lg font-mono text-[10px] text-[#6E1F2A] font-bold truncate">
+                  "Create customer survey..."
+                </div>
+              </div>
             </motion.div>
 
-            {/* Feature 3 */}
+            {/* Feature Card 3 */}
             <motion.div
               whileHover={{ y: -4 }}
               transition={{ duration: 0.2 }}
-              className="p-6 bg-[#FCFBF8] border border-[#E7E2DE] rounded-2xl space-y-3 shadow-subtle hover:border-[#6E1F2A]/40"
+              className="crayon-card crayon-card-brand p-6 space-y-4 flex flex-col justify-between"
             >
-              <div className="w-10 h-10 rounded-xl bg-[#F7EEF0] text-[#6E1F2A] flex items-center justify-center font-bold">
-                <Command className="w-5 h-5" />
+              <div className="space-y-3">
+                <div className="w-11 h-11 rounded-2xl bg-[#6E1F2A] text-white flex items-center justify-center font-bold shadow-sm">
+                  <Command className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-extrabold text-[#1C1917]">Keyboard Hotkeys & Shortcuts</h3>
+                <p className="text-xs text-[#78716C] font-medium leading-relaxed">
+                  Respondents navigate using <kbd className="px-1.5 py-0.5 text-[10px] bg-white border rounded font-mono font-bold">Enter ↵</kbd>, <kbd className="px-1.5 py-0.5 text-[10px] bg-white border rounded font-mono font-bold">Shift+Enter</kbd>, and numerical choice keys.
+                </p>
               </div>
-              <h3 className="text-base font-bold text-[#191716]">Keyboard-First Hotkeys & Shortcuts</h3>
-              <p className="text-xs text-[#6F6A67] leading-relaxed">
-                Respondents can navigate using <kbd className="px-1.5 py-0.5 text-[10px] bg-white border rounded">Enter ↵</kbd>, <kbd className="px-1.5 py-0.5 text-[10px] bg-white border rounded">Shift+Enter</kbd>, and numerical option keys. Creators use <kbd className="px-1.5 py-0.5 text-[10px] bg-white border rounded">⌘K</kbd> for instant actions.
-              </p>
+
+              {/* Interactive Video-like Mini Demo */}
+              <div className="p-3 bg-white border border-[#E6DFD5] rounded-xl text-xs space-y-2">
+                <div className="flex items-center justify-between text-[11px] text-[#6E1F2A] font-bold">
+                  <span>Shortcut Simulator</span>
+                  <Command className="w-3 h-3" />
+                </div>
+                <div className="flex justify-between items-center bg-[#F6F3ED] p-2 rounded-lg font-mono text-[10px]">
+                  <span>Submit: <strong className="text-[#6E1F2A]">Enter ↵</strong></span>
+                  <span>Palette: <strong className="text-[#6E1F2A]">⌘K</strong></span>
+                </div>
+              </div>
             </motion.div>
 
-            {/* Feature 4 */}
+            {/* Feature Card 4 */}
             <motion.div
               whileHover={{ y: -4 }}
               transition={{ duration: 0.2 }}
-              className="p-6 bg-[#FCFBF8] border border-[#E7E2DE] rounded-2xl space-y-3 shadow-subtle hover:border-[#6E1F2A]/40"
+              className="crayon-card crayon-card-brand p-6 space-y-4 flex flex-col justify-between"
             >
-              <div className="w-10 h-10 rounded-xl bg-[#F7EEF0] text-[#6E1F2A] flex items-center justify-center font-bold">
-                <Shield className="w-5 h-5" />
+              <div className="space-y-3">
+                <div className="w-11 h-11 rounded-2xl bg-[#6E1F2A] text-white flex items-center justify-center font-bold shadow-sm">
+                  <Shield className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-extrabold text-[#1C1917]">Form Health Audit</h3>
+                <p className="text-xs text-[#78716C] font-medium leading-relaxed">
+                  Built-in diagnostic auditor analyzes questions, missing choices, and required rules before publishing so you never launch broken forms.
+                </p>
               </div>
-              <h3 className="text-base font-bold text-[#191716]">Form Health Diagnostic Audit</h3>
-              <p className="text-xs text-[#6F6A67] leading-relaxed">
-                Built-in diagnostic auditor analyzes questions, missing choices, and required rules before publishing so you never launch a broken form.
-              </p>
+
+              {/* Interactive Video-like Mini Demo */}
+              <div className="p-3 bg-white border border-[#E6DFD5] rounded-xl text-xs space-y-2">
+                <div className="flex items-center justify-between text-[11px] text-[#6E1F2A] font-bold">
+                  <span>Health Auditor</span>
+                  <Check className="w-3.5 h-3.5 text-[#34D399]" />
+                </div>
+                <div className="p-2 bg-[#E6F4EA] text-[#059669] rounded-lg font-semibold text-[10px] flex items-center justify-between">
+                  <span>100% Pre-publish Pass</span>
+                  <span className="font-bold">PASSED</span>
+                </div>
+              </div>
             </motion.div>
 
-            {/* Feature 5 */}
+            {/* Feature Card 5 */}
             <motion.div
               whileHover={{ y: -4 }}
               transition={{ duration: 0.2 }}
-              className="p-6 bg-[#FCFBF8] border border-[#E7E2DE] rounded-2xl space-y-3 shadow-subtle hover:border-[#6E1F2A]/40"
+              className="crayon-card crayon-card-brand p-6 space-y-4 flex flex-col justify-between"
             >
-              <div className="w-10 h-10 rounded-xl bg-[#F7EEF0] text-[#6E1F2A] flex items-center justify-center font-bold">
-                <BarChart3 className="w-5 h-5" />
+              <div className="space-y-3">
+                <div className="w-11 h-11 rounded-2xl bg-[#6E1F2A] text-white flex items-center justify-center font-bold shadow-sm">
+                  <BarChart3 className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-extrabold text-[#1C1917]">Funnel Analytics & Export</h3>
+                <p className="text-xs text-[#78716C] font-medium leading-relaxed">
+                  Track views, completion rates, average duration times, and question dropoff metrics with instant CSV export capabilities.
+                </p>
               </div>
-              <h3 className="text-base font-bold text-[#191716]">Real-Time Funnel Analytics</h3>
-              <p className="text-xs text-[#6F6A67] leading-relaxed">
-                Track total views, completion rates, average completion times, and question dropoff metrics with instant CSV export capabilities.
-              </p>
+
+              {/* Interactive Video-like Mini Demo */}
+              <div className="p-3 bg-white border border-[#E6DFD5] rounded-xl text-xs space-y-2">
+                <div className="flex items-center justify-between text-[11px] text-[#6E1F2A] font-bold">
+                  <span>Real-time Funnel</span>
+                  <BarChart3 className="w-3 h-3" />
+                </div>
+                <div className="flex justify-between items-center bg-[#F6F3ED] p-2 rounded-lg font-mono text-[10px]">
+                  <span>Conversion: <strong className="text-[#6E1F2A]">83.1%</strong></span>
+                  <span>Export: <strong className="text-[#6E1F2A]">CSV</strong></span>
+                </div>
+              </div>
             </motion.div>
 
-            {/* Feature 6 */}
+            {/* Feature Card 6 */}
             <motion.div
               whileHover={{ y: -4 }}
               transition={{ duration: 0.2 }}
-              className="p-6 bg-[#FCFBF8] border border-[#E7E2DE] rounded-2xl space-y-3 shadow-subtle hover:border-[#6E1F2A]/40"
+              className="crayon-card crayon-card-brand p-6 space-y-4 flex flex-col justify-between"
             >
-              <div className="w-10 h-10 rounded-xl bg-[#F7EEF0] text-[#6E1F2A] flex items-center justify-center font-bold">
-                <Palette className="w-5 h-5" />
+              <div className="space-y-3">
+                <div className="w-11 h-11 rounded-2xl bg-[#6E1F2A] text-white flex items-center justify-center font-bold shadow-sm">
+                  <Palette className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-extrabold text-[#1C1917]">5 Curated Brand Themes</h3>
+                <p className="text-xs text-[#78716C] font-medium leading-relaxed">
+                  Select from Deep Burgundy, Midnight Sky, Emerald Forest, Deep Ocean, or Monochrome Minimal for 100% theme consistency.
+                </p>
               </div>
-              <h3 className="text-base font-bold text-[#191716]">5 Curated Brand Themes</h3>
-              <p className="text-xs text-[#6F6A67] leading-relaxed">
-                Select from Deep Burgundy, Midnight Sky, Emerald Forest, Deep Ocean, or Monochrome Minimal for 100% theme consistency across all controls.
-              </p>
+
+              {/* Interactive Video-like Mini Demo */}
+              <div className="p-3 bg-white border border-[#E6DFD5] rounded-xl text-xs space-y-2">
+                <div className="flex items-center justify-between text-[11px] text-[#6E1F2A] font-bold">
+                  <span>Theme Palette</span>
+                  <Palette className="w-3 h-3" />
+                </div>
+                <div className="flex items-center justify-between p-1.5 bg-[#F6F3ED] rounded-lg">
+                  <span className="w-4 h-4 rounded-full bg-[#6E1F2A]" title="Burgundy" />
+                  <span className="w-4 h-4 rounded-full bg-[#0F172A]" title="Midnight" />
+                  <span className="w-4 h-4 rounded-full bg-[#2F7D5B]" title="Forest" />
+                  <span className="w-4 h-4 rounded-full bg-[#41658A]" title="Ocean" />
+                  <span className="w-4 h-4 rounded-full bg-[#111111]" title="Minimal" />
+                </div>
+              </div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* 4. Footer */}
-      <footer className="py-12 bg-[#FCFBF8] border-t border-[#E7E2DE] text-xs text-[#6F6A67]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <Link href="/" className="flex items-center gap-2 group">
+      {/* 4. FOOTER */}
+      <footer className="py-10 bg-crayon-paper border-t border-[#E6DFD5] text-xs text-[#78716C]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+          <Link href="/" className="flex items-center gap-2.5 group">
             <RippleLogo className="w-6 h-6 text-[#6E1F2A]" />
-            <span className="font-bold text-base text-[#191716] group-hover:text-[#6E1F2A] transition-colors">
+            <span className="font-extrabold text-lg text-[#1C1917] group-hover:text-[#6E1F2A] transition-colors">
               Ripple
             </span>
           </Link>
 
-          <div className="flex items-center gap-6 font-semibold">
-            <Link href="/templates" className="hover:text-[#191716] transition-colors">
+          <div className="flex items-center gap-6 font-bold">
+            <Link href="/templates" className="hover:text-[#6E1F2A] transition-colors">
               Templates
             </Link>
-            <Link href="/ai-generator" className="hover:text-[#191716] transition-colors">
+            <Link href="/ai-generator" className="hover:text-[#6E1F2A] transition-colors">
               AI Generator
             </Link>
-            <Link href="/order" className="hover:text-[#191716] transition-colors">
+            <Link href="/order" className="hover:text-[#6E1F2A] transition-colors">
               Pricing & Orders
             </Link>
-            <Link href="/login" className="hover:text-[#191716] transition-colors">
+            <Link href="/login" className="hover:text-[#6E1F2A] transition-colors">
               Sign In
             </Link>
           </div>

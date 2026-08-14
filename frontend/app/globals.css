@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,14 +6,14 @@
 
 @layer base {
   :root {
-    --bg-main: #FCFBF8;
-    --surface: #F5F2EF;
-    --border-color: #E7E2DE;
-    --text-primary: #191716;
-    --text-secondary: #6F6A67;
+    --bg-main: #FCFBF7;
+    --surface: #F6F3ED;
+    --border-color: #E6DFD5;
+    --text-primary: #1C1917;
+    --text-secondary: #78716C;
     --brand-burgundy: #6E1F2A;
-    --brand-hover: #581821;
-    --brand-light: #F7EEF0;
+    --brand-hover: #541720;
+    --brand-light: #F9EFEF;
   }
 
   html, body {
@@ -21,12 +21,82 @@
     overflow-x: hidden !important;
     background-color: var(--bg-main);
     color: var(--text-primary);
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 }
 
-/* Custom scrollbars */
+/* Organic Crayon Paper Texture Overlay */
+.bg-crayon-paper {
+  background-color: #FCFBF7;
+  background-image: radial-gradient(#E6DFD5 0.75px, transparent 0.75px), radial-gradient(#E6DFD5 0.75px, #FCFBF7 0.75px);
+  background-size: 30px 30px;
+  background-position: 0 0, 15px 15px;
+}
+
+/* Elegant Brand Crayon Card & Surface Utilities */
+.crayon-card {
+  background-color: #FFFFFF;
+  border: 2px solid #E6DFD5;
+  border-radius: 1.5rem;
+  box-shadow: 4px 4px 0px 0px #E6DFD5;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.crayon-card:hover {
+  transform: translateY(-4px);
+  border-color: #6E1F2A;
+  box-shadow: 6px 6px 0px 0px #6E1F2A;
+}
+
+.crayon-card-brand {
+  background: linear-gradient(135deg, #FFFFFF 70%, #F9EFEF 100%);
+  border: 2px solid #F0C9CD;
+  box-shadow: 4px 4px 0px 0px #F0C9CD;
+}
+
+.crayon-card-brand:hover {
+  border-color: #6E1F2A;
+  box-shadow: 6px 6px 0px 0px #6E1F2A;
+}
+
+.crayon-button {
+  border: 2px solid #1C1917;
+  box-shadow: 3px 3px 0px 0px #1C1917;
+  transition: all 0.2s ease;
+}
+
+.crayon-button:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0px 0px #1C1917;
+}
+
+.crayon-button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px 0px #1C1917;
+}
+
+/* Pulsing Demo Credentials Glow */
+@keyframes demo-pulse-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(110, 31, 42, 0.4), 4px 4px 0px 0px #6E1F2A;
+    border-color: #6E1F2A;
+  }
+  50% {
+    box-shadow: 0 0 25px 4px rgba(110, 31, 42, 0.25), 6px 6px 0px 0px #6E1F2A;
+    border-color: #6E1F2A;
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(110, 31, 42, 0.4), 4px 4px 0px 0px #6E1F2A;
+    border-color: #6E1F2A;
+  }
+}
+
+.animate-demo-card {
+  animation: demo-pulse-glow 3s infinite ease-in-out;
+}
+
+/* Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -35,34 +105,19 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #E7E2DE;
+  background: #E6DFD5;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #6F6A67;
-}
-
-/* Hide scrollbar utility */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* Focus ring accessibility */
-*:focus-visible {
-  outline: 2px solid #6E1F2A;
-  outline-offset: 2px;
+  background: #78716C;
 }
 
 /* Respondent Theme Classes */
 .theme-burgundy {
-  background-color: #FCFBF8;
-  color: #191716;
+  background-color: #FCFBF7;
+  color: #1C1917;
   --accent: #6E1F2A;
-  --accent-hover: #581821;
+  --accent-hover: #541720;
   --theme-btn-text: #FFFFFF;
 }
 
