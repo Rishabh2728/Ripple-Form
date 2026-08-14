@@ -201,7 +201,31 @@ export const api = {
 
   getResponseDetail: (responseId: string) => request<any>(`/responses/${responseId}`),
 
-  getExportUrl: (formId: string) => `${API_BASE_URL}/forms/${formId}/responses/export`,
+  getExportUrl: (formId: string) => {
+    const token = typeof window !== "undefined" ? (localStorage.getItem("formflow_token") || localStorage.getItem("ripple_token") || "") : "";
+    return `${API_BASE_URL}/forms/${formId}/responses/export${token ? `?token=${encodeURIComponent(token)}` : ""}`;
+  },
+
+  downloadResponsesCSV: async (formId: string) => {
+    const token = typeof window !== "undefined" ? (localStorage.getItem("formflow_token") || localStorage.getItem("ripple_token") || "") : "";
+    const response = await fetch(`${API_BASE_URL}/forms/${formId}/responses/export`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+
+    if (!response.ok) {
+      throw new Error(`Export failed with status ${response.status}`);
+    }
+
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = downloadUrl;
+    a.download = `responses_${formId}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(downloadUrl);
+  },
 
   getAnalytics: (formId: string) => request<any>(`/forms/${formId}/analytics`),
 };

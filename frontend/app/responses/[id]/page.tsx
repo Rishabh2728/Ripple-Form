@@ -59,10 +59,13 @@ export default function ResponsesPage() {
     }
   }, [user, formId, page, search]);
 
-  const handleExportCSV = () => {
-    const url = api.getExportUrl(formId);
-    window.open(url, "_blank");
-    success("CSV export download started.");
+  const handleExportCSV = async () => {
+    try {
+      await api.downloadResponsesCSV(formId);
+      success("CSV export download complete.");
+    } catch (err) {
+      toastError("Failed to export CSV file.");
+    }
   };
 
   if (!form) {
