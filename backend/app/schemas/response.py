@@ -7,7 +7,7 @@ class AnswerItem(BaseModel):
     value: Any
 
 class ResponseSubmitRequest(BaseModel):
-    respondent_token: str
+    respondent_token: Optional[str] = None
     answers: List[AnswerItem]
     started_at: Optional[datetime] = None
     completion_time_seconds: Optional[int] = 0

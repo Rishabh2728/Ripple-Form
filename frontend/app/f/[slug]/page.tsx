@@ -187,6 +187,7 @@ export default function PublicRespondentPage() {
       const completionTime = Math.round((Date.now() - startTimeRef.current) / 1000);
 
       const responsePayload = {
+        respondent_token: `resp_${Math.random().toString(36).substring(2, 11)}`,
         answers: Object.entries(answers).map(([qId, val]) => ({
           question_id: qId,
           value: typeof val === "object" ? JSON.stringify(val) : String(val),

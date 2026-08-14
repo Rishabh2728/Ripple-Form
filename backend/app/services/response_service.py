@@ -1,6 +1,7 @@
 import re
 import csv
 import io
+import uuid
 from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -222,10 +223,12 @@ async def submit_response(db: AsyncSession, slug: str, data: ResponseSubmitReque
     started_at = data.started_at if data.started_at else datetime.now(timezone.utc)
     submitted_at = datetime.now(timezone.utc)
 
+    token_str = data.respondent_token or f"resp_{uuid.uuid4().hex[:12]}"
+
     response = Response(
         form_id=form.id,
         form_version_id=latest_ver.id,
-        respondent_token=data.respondent_token,
+        respondent_token=token_str,
         started_at=started_at,
         submitted_at=submitted_at,
         completion_time_seconds=data.completion_time_seconds or max(1, int((submitted_at - started_at.replace(tzinfo=timezone.utc if started_at.tzinfo is None else started_at.tzinfo)).total_seconds())),
