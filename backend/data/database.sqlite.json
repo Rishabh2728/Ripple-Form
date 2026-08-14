@@ -1,0 +1,27 @@
+{
+  "activeGoal": "muscleGain",
+  "meals": [
+    {
+      "id": "meal-1786080781766-hw20",
+      "foodId": "paneer",
+      "foodName": "Paneer (Cottage Cheese)",
+      "weight": 150,
+      "calories": 398,
+      "protein": 27,
+      "carbs": 5.3,
+      "fat": 30,
+      "loggedAt": "2026-08-07T05:33:01.766Z"
+    },
+    {
+      "id": "meal-1786080766623-lmo5",
+      "foodId": "rice",
+      "foodName": "Rice (Cooked)",
+      "weight": 200,
+      "calories": 260,
+      "protein": 5.4,
+      "carbs": 56,
+      "fat": 0.6,
+      "loggedAt": "2026-08-07T05:32:46.623Z"
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-main: #FCFBF8;
+    --surface: #F5F2EF;
+    --border-color: #E7E2DE;
+    --text-primary: #191716;
+    --text-secondary: #6F6A67;
+    --brand-burgundy: #6E1F2A;
+    --brand-hover: #581821;
+    --brand-light: #F7EEF0;
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #E7E2DE;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #6F6A67;
+}
+
+/* Focus ring accessibility */
+*:focus-visible {
+  outline: 2px solid #6E1F2A;
+  outline-offset: 2px;
+}
+
+/* Respondent Theme Classes */
+.theme-burgundy {
+  background-color: #FCFBF8;
+  color: #191716;
+  --accent: #6E1F2A;
+}
+
+.theme-midnight {
+  background-color: #0F172A;
+  color: #F8FAFC;
+  --accent: #38BDF8;
+}
+
+.theme-forest {
+  background-color: #F4F7F4;
+  color: #1C2E24;
+  --accent: #2F7D5B;
+}
+
+.theme-ocean {
+  background-color: #F0F6FA;
+  color: #0F2942;
+  --accent: #41658A;
+}
+
+.theme-minimal {
+  background-color: #FFFFFF;
+  color: #111111;
+  --accent: #111111;
+}
