@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useBuilderStore } from "../stores/builder-store";
 import {
   Search, Plus, Copy, Trash2, ArrowUp, ArrowDown, Eye,
-  Share2, Send, Settings, Palette, Undo, Redo, Command as CmdIcon
+  Share2, Send, Palette, Undo, Redo
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -37,11 +37,14 @@ export const CommandPaletteModal: React.FC<{
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         toggleCommandPalette();
+      } else if (e.key === "Escape" && isCommandPaletteOpen) {
+        e.preventDefault();
+        toggleCommandPalette(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [toggleCommandPalette]);
+  }, [isCommandPaletteOpen, toggleCommandPalette]);
 
   if (!isCommandPaletteOpen) return null;
 

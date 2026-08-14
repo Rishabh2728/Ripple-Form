@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import "./globals.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ToastProvider } from "../components/ui/toast";
+import { TopLoader } from "../components/TopLoader";
+import { RouteWarmer } from "../components/RouteWarmer";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -12,6 +14,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         defaultOptions: {
           queries: {
             refetchOnWindowFocus: false,
+            staleTime: 5 * 60 * 1000,
+            gcTime: 10 * 60 * 1000,
             retry: 1,
           },
         },
@@ -30,7 +34,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-screen bg-[#FCFBF8] text-[#191716] antialiased">
         <QueryClientProvider client={queryClient}>
-          <ToastProvider>{children}</ToastProvider>
+          <ToastProvider>
+            <Suspense fallback={null}>
+              <TopLoader />
+              <RouteWarmer />
+            </Suspense>
+            {children}
+          </ToastProvider>
         </QueryClientProvider>
       </body>
     </html>

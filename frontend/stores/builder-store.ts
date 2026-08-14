@@ -14,26 +14,30 @@ interface BuilderState {
   isCommandPaletteOpen: boolean;
   isHealthModalOpen: boolean;
   isShareModalOpen: boolean;
-  
-  // History for undo/redo
+
   past: HistoryState[];
   future: HistoryState[];
 
-  // Actions
   setForm: (form: Form) => void;
   setActiveQuestionId: (id: string | null) => void;
   setSaveStatus: (status: SaveStatus) => void;
   toggleCommandPalette: (open?: boolean) => void;
   toggleHealthModal: (open?: boolean) => void;
   toggleShareModal: (open?: boolean) => void;
-  
-  // Builder mutating actions with undo/redo snapshotting
+
   pushHistory: () => void;
   undo: () => void;
   redo: () => void;
-  
+
   updateFormLocal: (updater: (prev: Form) => Form) => void;
 }
+
+const cloneForm = (form: Form): Form => {
+  if (typeof structuredClone === "function") {
+    return structuredClone(form);
+  }
+  return JSON.parse(JSON.stringify(form));
+};
 
 export const useBuilderStore = create<BuilderState>((set, get) => ({
   form: null,
@@ -60,8 +64,7 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
   pushHistory: () => {
     const { form, past } = get();
     if (!form) return;
-    // Limit history stack size to 30
-    const newPast = [...past.slice(-29), { form: JSON.parse(JSON.stringify(form)) }];
+    const newPast = [...past.slice(-29), { form: cloneForm(form) }];
     set({ past: newPast, future: [] });
   },
 
@@ -70,7 +73,7 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     if (!form || past.length === 0) return;
     const previous = past[past.length - 1];
     const newPast = past.slice(0, past.length - 1);
-    const newFuture = [{ form: JSON.parse(JSON.stringify(form)) }, ...future];
+    const newFuture = [{ form: cloneForm(form) }, ...future];
 
     set({
       form: previous.form,
@@ -85,7 +88,7 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     if (!form || future.length === 0) return;
     const next = future[0];
     const newFuture = future.slice(1);
-    const newPast = [...past, { form: JSON.parse(JSON.stringify(form)) }];
+    const newPast = [...past, { form: cloneForm(form) }];
 
     set({
       form: next.form,

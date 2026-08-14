@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Navbar } from "../../components/Navbar";
 import { useAuthStore } from "../../stores/auth-store";
-import { api, ApiError } from "../../lib/api-client";
-import { Form, FormStatus } from "../../types";
+import { api } from "../../lib/api-client";
+import { Form } from "../../types";
 import { useToast } from "../../components/ui/toast";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
@@ -14,7 +14,7 @@ import { Dialog } from "../../components/ui/dialog";
 import { Input } from "../../components/ui/input";
 import {
   Plus, Search, MoreVertical, Edit3, Eye, BarChart3, MessageSquare,
-  Copy, Share2, Archive, Trash2, Sparkles, FileText, Calendar, ExternalLink
+  Copy, Trash2, Sparkles, FileText, ExternalLink, Loader2
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -27,6 +27,12 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<"all" | "draft" | "published" | "archived">("all");
   const [search, setSearch] = useState("");
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+
+  // Instant action loading states
+  const [isCreating, setIsCreating] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [navigatingId, setNavigatingId] = useState<string | null>(null);
 
   // Rename modal
   const [renameForm, setRenameForm] = useState<Form | null>(null);
@@ -48,8 +54,10 @@ export default function DashboardPage() {
   const loadForms = async () => {
     try {
       setLoading(true);
-      const data = await api.getForms(activeTab === "all" ? undefined : activeTab);
-      setForms(data);
+      const statusFilter = activeTab === "all" ? "" : activeTab;
+      const data = await api.getForms(1, 20, "", statusFilter);
+      const formList: Form[] = Array.isArray(data) ? data : ((data as any)?.forms || []);
+      setForms(formList);
     } catch (err: any) {
       toastError("Failed to load workspace forms.");
     } finally {
@@ -63,8 +71,13 @@ export default function DashboardPage() {
     }
   }, [user, activeTab]);
 
+  const prefetchRoute = (path: string) => {
+    router.prefetch(path);
+  };
+
   const handleCreateBlank = async () => {
     try {
+      setIsCreating(true);
       const newForm = await api.createForm({
         title: "Untitled Form",
         description: "Add your questions here.",
@@ -81,6 +94,7 @@ export default function DashboardPage() {
       router.push(`/builder/${newForm.id}`);
     } catch (err: any) {
       toastError("Could not create form.");
+      setIsCreating(false);
     }
   };
 
@@ -98,25 +112,36 @@ export default function DashboardPage() {
     e.preventDefault();
     if (!renameForm) return;
     try {
+      setIsRenaming(true);
       await api.updateForm(renameForm.id, { title: newTitle });
       success("Form renamed!");
       setRenameForm(null);
       loadForms();
     } catch (err) {
       toastError("Failed to rename form.");
+    } finally {
+      setIsRenaming(false);
     }
   };
 
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
     try {
+      setIsDeleting(true);
       await api.deleteForm(deleteTarget.id);
       success("Form deleted permanently.");
       setDeleteTarget(null);
       loadForms();
     } catch (err) {
       toastError("Failed to delete form.");
+    } finally {
+      setIsDeleting(false);
     }
+  };
+
+  const handleNavigate = (formId: string, path: string) => {
+    setNavigatingId(formId);
+    router.push(path);
   };
 
   const filteredForms = forms.filter((f) =>
@@ -139,17 +164,23 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Link href="/templates">
+            <Link href="/templates" prefetch={true} onMouseEnter={() => prefetchRoute("/templates")}>
               <Button variant="outline" size="sm" leftIcon={<FileText className="w-4 h-4" />}>
                 Templates
               </Button>
             </Link>
-            <Link href="/ai-generator">
+            <Link href="/ai-generator" prefetch={true} onMouseEnter={() => prefetchRoute("/ai-generator")}>
               <Button variant="secondary" size="sm" leftIcon={<Sparkles className="w-4 h-4 text-[#6E1F2A]" />}>
                 Generate with AI
               </Button>
             </Link>
-            <Button variant="primary" size="sm" onClick={handleCreateBlank} leftIcon={<Plus className="w-4 h-4" />}>
+            <Button
+              variant="primary"
+              size="sm"
+              isLoading={isCreating}
+              onClick={handleCreateBlank}
+              leftIcon={<Plus className="w-4 h-4" />}
+            >
               Create Form
             </Button>
           </div>
@@ -204,137 +235,170 @@ export default function DashboardPage() {
                 : "Get started by creating a blank form, choosing a template, or generating one with AI."}
             </p>
             <div className="mt-6 flex items-center justify-center gap-3">
-              <Button variant="primary" size="sm" onClick={handleCreateBlank} leftIcon={<Plus className="w-4 h-4" />}>
+              <Button
+                variant="primary"
+                size="sm"
+                isLoading={isCreating}
+                onClick={handleCreateBlank}
+                leftIcon={<Plus className="w-4 h-4" />}
+              >
                 Create Form
               </Button>
             </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredForms.map((form) => (
-              <div
-                key={form.id}
-                className="group relative bg-white border border-[#E7E2DE] hover:border-[#6E1F2A]/40 rounded-2xl p-5 shadow-subtle hover:shadow-card transition-all flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-start justify-between gap-2 mb-3">
-                    <Badge variant={form.status as any}>{form.status}</Badge>
+            {filteredForms.map((form) => {
+              const isNav = navigatingId === form.id;
+              return (
+                <div
+                  key={form.id}
+                  onMouseEnter={() => {
+                    prefetchRoute(`/builder/${form.id}`);
+                    prefetchRoute(`/preview/${form.id}`);
+                    prefetchRoute(`/responses/${form.id}`);
+                    prefetchRoute(`/analytics/${form.id}`);
+                  }}
+                  className={`group relative bg-white border rounded-2xl p-5 shadow-subtle hover:shadow-card transition-all flex flex-col justify-between ${
+                    isNav ? "border-[#6E1F2A] bg-[#F7EEF0]/20 opacity-80" : "border-[#E7E2DE] hover:border-[#6E1F2A]/40"
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-start justify-between gap-2 mb-3">
+                      <Badge variant={form.status as any}>{form.status}</Badge>
 
-                    {/* Actions Menu */}
-                    <div className="relative">
-                      <button
-                        onClick={() => setActiveMenuId(activeMenuId === form.id ? null : form.id)}
-                        className="p-1 rounded-lg text-[#6F6A67] hover:text-[#191716] hover:bg-[#F5F2EF] transition-colors"
-                      >
-                        <MoreVertical className="w-4 h-4" />
-                      </button>
-
-                      {activeMenuId === form.id && (
-                        <div
-                          className="absolute right-0 mt-1 w-48 bg-white border border-[#E7E2DE] rounded-xl shadow-modal py-1 z-30"
-                          onMouseLeave={() => setActiveMenuId(null)}
+                      {/* Actions Menu */}
+                      <div className="relative">
+                        <button
+                          onClick={() => setActiveMenuId(activeMenuId === form.id ? null : form.id)}
+                          className="p-1 rounded-lg text-[#6F6A67] hover:text-[#191716] hover:bg-[#F5F2EF] transition-colors"
                         >
-                          <Link
-                            href={`/builder/${form.id}`}
-                            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#191716] hover:bg-[#F5F2EF]"
-                          >
-                            <Edit3 className="w-3.5 h-3.5 text-[#6F6A67]" /> Edit Builder
-                          </Link>
-                          <Link
-                            href={`/preview/${form.id}`}
-                            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#191716] hover:bg-[#F5F2EF]"
-                          >
-                            <Eye className="w-3.5 h-3.5 text-[#6F6A67]" /> Preview
-                          </Link>
-                          <Link
-                            href={`/responses/${form.id}`}
-                            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#191716] hover:bg-[#F5F2EF]"
-                          >
-                            <MessageSquare className="w-3.5 h-3.5 text-[#6F6A67]" /> Responses
-                          </Link>
-                          <Link
-                            href={`/analytics/${form.id}`}
-                            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#191716] hover:bg-[#F5F2EF]"
-                          >
-                            <BarChart3 className="w-3.5 h-3.5 text-[#6F6A67]" /> Analytics
-                          </Link>
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
 
-                          <div className="my-1 border-t border-[#E7E2DE]" />
-
-                          <button
-                            onClick={() => {
-                              setActiveMenuId(null);
-                              handleDuplicate(form);
-                            }}
-                            className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#191716] hover:bg-[#F5F2EF]"
+                        {activeMenuId === form.id && (
+                          <div
+                            className="absolute right-0 mt-1 w-48 bg-white border border-[#E7E2DE] rounded-xl shadow-modal py-1 z-30"
+                            onMouseLeave={() => setActiveMenuId(null)}
                           >
-                            <Copy className="w-3.5 h-3.5 text-[#6F6A67]" /> Duplicate
-                          </button>
-                          <button
-                            onClick={() => {
-                              setActiveMenuId(null);
-                              setRenameForm(form);
-                              setNewTitle(form.title);
-                            }}
-                            className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#191716] hover:bg-[#F5F2EF]"
-                          >
-                            <Edit3 className="w-3.5 h-3.5 text-[#6F6A67]" /> Rename
-                          </button>
-
-                          {form.status === "published" && (
-                            <a
-                              href={`/f/${form.slug}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#6E1F2A] hover:bg-[#F7EEF0]"
+                            <button
+                              onClick={() => {
+                                setActiveMenuId(null);
+                                handleNavigate(form.id, `/builder/${form.id}`);
+                              }}
+                              className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#191716] hover:bg-[#F5F2EF]"
                             >
-                              <ExternalLink className="w-3.5 h-3.5" /> Public Link
-                            </a>
-                          )}
+                              <Edit3 className="w-3.5 h-3.5 text-[#6F6A67]" /> Edit Builder
+                            </button>
+                            <button
+                              onClick={() => {
+                                setActiveMenuId(null);
+                                handleNavigate(form.id, `/preview/${form.id}`);
+                              }}
+                              className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#191716] hover:bg-[#F5F2EF]"
+                            >
+                              <Eye className="w-3.5 h-3.5 text-[#6F6A67]" /> Preview
+                            </button>
+                            <button
+                              onClick={() => {
+                                setActiveMenuId(null);
+                                handleNavigate(form.id, `/responses/${form.id}`);
+                              }}
+                              className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#191716] hover:bg-[#F5F2EF]"
+                            >
+                              <MessageSquare className="w-3.5 h-3.5 text-[#6F6A67]" /> Responses
+                            </button>
+                            <button
+                              onClick={() => {
+                                setActiveMenuId(null);
+                                handleNavigate(form.id, `/analytics/${form.id}`);
+                              }}
+                              className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#191716] hover:bg-[#F5F2EF]"
+                            >
+                              <BarChart3 className="w-3.5 h-3.5 text-[#6F6A67]" /> Analytics
+                            </button>
 
-                          <div className="my-1 border-t border-[#E7E2DE]" />
+                            <div className="my-1 border-t border-[#E7E2DE]" />
 
-                          <button
-                            onClick={() => {
-                              setActiveMenuId(null);
-                              setDeleteTarget(form);
-                            }}
-                            className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#B54747] hover:bg-[#F7EEF0]"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" /> Delete
-                          </button>
-                        </div>
-                      )}
+                            <button
+                              onClick={() => {
+                                setActiveMenuId(null);
+                                handleDuplicate(form);
+                              }}
+                              className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#191716] hover:bg-[#F5F2EF]"
+                            >
+                              <Copy className="w-3.5 h-3.5 text-[#6F6A67]" /> Duplicate
+                            </button>
+                            <button
+                              onClick={() => {
+                                setActiveMenuId(null);
+                                setRenameForm(form);
+                                setNewTitle(form.title);
+                              }}
+                              className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#191716] hover:bg-[#F5F2EF]"
+                            >
+                              <Edit3 className="w-3.5 h-3.5 text-[#6F6A67]" /> Rename
+                            </button>
+
+                            {form.status === "published" && (
+                              <a
+                                href={`/f/${form.slug}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#6E1F2A] hover:bg-[#F7EEF0]"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" /> Public Link
+                              </a>
+                            )}
+
+                            <div className="my-1 border-t border-[#E7E2DE]" />
+
+                            <button
+                              onClick={() => {
+                                setActiveMenuId(null);
+                                setDeleteTarget(form);
+                              }}
+                              className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#B54747] hover:bg-[#F7EEF0]"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" /> Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
+
+                    <button
+                      onClick={() => handleNavigate(form.id, `/builder/${form.id}`)}
+                      className="text-left w-full"
+                    >
+                      <h3 className="text-base font-bold text-[#191716] group-hover:text-[#6E1F2A] transition-colors truncate flex items-center gap-2">
+                        {isNav && <Loader2 className="w-4 h-4 text-[#6E1F2A] animate-spin shrink-0" />}
+                        <span>{form.title}</span>
+                      </h3>
+                    </button>
+
+                    <p className="text-xs text-[#6F6A67] mt-1 line-clamp-2 min-h-[32px]">
+                      {form.description || "No description provided."}
+                    </p>
                   </div>
 
-                  <Link href={`/builder/${form.id}`}>
-                    <h3 className="text-base font-bold text-[#191716] group-hover:text-[#6E1F2A] transition-colors truncate">
-                      {form.title}
-                    </h3>
-                  </Link>
+                  <div className="mt-6 pt-4 border-t border-[#E7E2DE] flex items-center justify-between text-xs text-[#6F6A67]">
+                    <div className="flex items-center gap-3">
+                      <span>{form.question_count || 0} questions</span>
+                      <span>•</span>
+                      <span className="font-semibold text-[#191716]">{form.response_count || 0} responses</span>
+                    </div>
 
-                  <p className="text-xs text-[#6F6A67] mt-1 line-clamp-2 min-h-[32px]">
-                    {form.description || "No description provided."}
-                  </p>
-                </div>
-
-                <div className="mt-6 pt-4 border-t border-[#E7E2DE] flex items-center justify-between text-xs text-[#6F6A67]">
-                  <div className="flex items-center gap-3">
-                    <span>{form.question_count || 0} questions</span>
-                    <span>•</span>
-                    <span className="font-semibold text-[#191716]">{form.response_count || 0} responses</span>
+                    <button
+                      onClick={() => handleNavigate(form.id, `/builder/${form.id}`)}
+                      className="font-semibold text-[#6E1F2A] hover:underline flex items-center gap-1"
+                    >
+                      {isNav ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Build →"}
+                    </button>
                   </div>
-
-                  <Link
-                    href={`/builder/${form.id}`}
-                    className="font-semibold text-[#6E1F2A] hover:underline flex items-center gap-1"
-                  >
-                    Build →
-                  </Link>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </main>
@@ -347,7 +411,7 @@ export default function DashboardPage() {
             <Button variant="outline" size="sm" type="button" onClick={() => setRenameForm(null)}>
               Cancel
             </Button>
-            <Button variant="primary" size="sm" type="submit">
+            <Button variant="primary" size="sm" type="submit" isLoading={isRenaming}>
               Save Title
             </Button>
           </div>
@@ -363,7 +427,7 @@ export default function DashboardPage() {
           <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)}>
             Cancel
           </Button>
-          <Button variant="destructive" size="sm" onClick={handleDeleteConfirm}>
+          <Button variant="destructive" size="sm" onClick={handleDeleteConfirm} isLoading={isDeleting}>
             Delete Permanently
           </Button>
         </div>

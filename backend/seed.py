@@ -2,41 +2,58 @@ import asyncio
 import random
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, delete
 from app.db.session import engine, Base, AsyncSessionLocal
 from app.models.models import User, Workspace, Form, Question, QuestionOption, FormVersion, Response, ResponseAnswer, FormEvent
 from app.core.security import get_password_hash
-from app.services.form_service import generate_unique_slug
 
 def utc_now():
     return datetime.now(timezone.utc)
 
 async def seed_database():
-    print("Recreating database tables...")
+    print("Ensuring database tables exist...")
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
     async with AsyncSessionLocal() as db:
-        print("Seeding demo creator user...")
-        pwd_hash = get_password_hash("password123")
-        user = User(
-            name="Alex Morgan",
-            email="demo@ripple.com",
-            password_hash=pwd_hash,
-            avatar_url="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-            created_at=utc_now() - timedelta(days=30),
-            last_login_at=utc_now()
-        )
-        db.add(user)
-        await db.flush()
+        # Check if demo user already exists
+        stmt = select(User).where(User.email == "demo@ripple.com")
+        res = await db.execute(stmt)
+        existing_user = res.scalar_one_or_none()
 
-        workspace = Workspace(
-            name="Acme Product Team",
-            owner_id=user.id,
-            created_at=utc_now() - timedelta(days=30)
-        )
-        db.add(workspace)
-        await db.flush()
+        if existing_user:
+            print("Cleaning previous demo forms...")
+            # Clean existing demo workspace forms
+            ws_stmt = select(Workspace).where(Workspace.owner_id == existing_user.id)
+            ws_res = await db.execute(ws_stmt)
+            existing_ws = ws_res.scalar_one_or_none()
+            if existing_ws:
+                await db.execute(delete(Form).where(Form.workspace_id == existing_ws.id))
+                await db.commit()
+
+            user = existing_user
+            workspace = existing_ws
+        else:
+            print("Seeding demo creator user...")
+            pwd_hash = get_password_hash("password123")
+            user = User(
+                name="Alex Morgan",
+                email="demo@ripple.com",
+                password_hash=pwd_hash,
+                avatar_url="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+                created_at=utc_now() - timedelta(days=30),
+                last_login_at=utc_now()
+            )
+            db.add(user)
+            await db.flush()
+
+            workspace = Workspace(
+                name="Acme Product Team",
+                owner_id=user.id,
+                created_at=utc_now() - timedelta(days=30)
+            )
+            db.add(workspace)
+            await db.flush()
 
         # -------------------------------------------------------------
         # FORM 1: Published SaaS Customer Feedback (Published)

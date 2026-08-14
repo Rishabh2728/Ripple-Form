@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api").replace(/\/+$/, "");
 
 export class ApiError extends Error {
   code: string;
@@ -40,16 +40,30 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     data = await response.json();
   } catch (err) {
     if (!response.ok) {
-      throw new ApiError("Failed to parse response", "RESPONSE_PARSE_ERROR", response.status);
+      throw new ApiError("Failed to parse server response", "RESPONSE_PARSE_ERROR", response.status);
     }
     return {} as T;
   }
 
   if (!response.ok) {
-    const errObj = data?.error || {};
+    let errObj = data?.error;
+    if (!errObj && data?.detail) {
+      if (typeof data.detail === "object" && data.detail.error) {
+        errObj = data.detail.error;
+      } else if (typeof data.detail === "object") {
+        errObj = data.detail;
+      } else if (typeof data.detail === "string") {
+        errObj = { message: data.detail };
+      }
+    }
+    errObj = errObj || {};
+
+    const message = errObj.message || (typeof data?.detail === "string" ? data.detail : "An unexpected error occurred");
+    const code = errObj.code || "API_ERROR";
+
     throw new ApiError(
-      errObj.message || "An unexpected error occurred",
-      errObj.code || "API_ERROR",
+      message,
+      code,
       response.status,
       errObj.issues
     );
@@ -60,43 +74,128 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 
 export const api = {
   // Auth
-  register: (body: any) => request<any>("/auth/register", { method: "POST", body: JSON.stringify(body) }),
-  login: (body: any) => request<any>("/auth/login", { method: "POST", body: JSON.stringify(body) }),
+  register: (data: { name: string; email: string; password: string }) =>
+    request<{ access_token: string; token_type: string; user: any }>("/auth/register", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  login: (data: { email: string; password: string }) =>
+    request<{ access_token: string; token_type: string; user: any }>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
   getMe: () => request<any>("/auth/me"),
-  logout: () => request<any>("/auth/logout", { method: "POST" }),
 
   // Forms
-  getForms: (status?: string) => request<any[]>(`/forms${status ? `?status=${status}` : ""}`),
-  createForm: (body: any) => request<any>("/forms", { method: "POST", body: JSON.stringify(body) }),
+  getForms: (page = 1, limit = 10, search = "", status = "") => {
+    const params = new URLSearchParams();
+    if (status) params.append("status", status);
+    if (search) params.append("search", search);
+    return request<any[]>(`/forms${params.toString() ? `?${params.toString()}` : ""}`);
+  },
+
+  createForm: (data: { title: string; description?: string; theme_id?: string; questions?: any[] }) =>
+    request<any>("/forms", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
   getForm: (id: string) => request<any>(`/forms/${id}`),
-  updateForm: (id: string, body: any) => request<any>(`/forms/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
-  deleteForm: (id: string, archive = false) => request<any>(`/forms/${id}?archive=${archive}`, { method: "DELETE" }),
-  duplicateForm: (id: string) => request<any>(`/forms/${id}/duplicate`, { method: "POST" }),
-  getFormHealth: (id: string) => request<any>(`/forms/${id}/health`),
-  publishForm: (id: string) => request<any>(`/forms/${id}/publish`, { method: "POST" }),
-  unpublishForm: (id: string) => request<any>(`/forms/${id}/unpublish`, { method: "POST" }),
+
+  updateForm: (id: string, data: Partial<{ title: string; description: string; theme_id: string; thank_you_title: string; thank_you_message: string; allow_back_navigation: boolean; show_progress: boolean }>) =>
+    request<any>(`/forms/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+
+  deleteForm: (id: string) =>
+    request<{ message: string }>(`/forms/${id}`, {
+      method: "DELETE",
+    }),
+
+  duplicateForm: (id: string) =>
+    request<any>(`/forms/${id}/duplicate`, {
+      method: "POST",
+    }),
+
+  publishForm: (id: string) =>
+    request<{ id: string; status: string; published_at: string; version_number: number }>(`/forms/${id}/publish`, {
+      method: "POST",
+    }),
+
+  unpublishForm: (id: string) =>
+    request<{ id: string; status: string }>(`/forms/${id}/unpublish`, {
+      method: "POST",
+    }),
+
+  getFormHealth: (id: string) =>
+    request<{ form_id: string; is_valid: boolean; issues: any[] }>(`/forms/${id}/health`),
 
   // Questions
-  addQuestion: (formId: string, body: any) => request<any>(`/forms/${formId}/questions`, { method: "POST", body: JSON.stringify(body) }),
-  updateQuestion: (questionId: string, body: any) => request<any>(`/questions/${questionId}`, { method: "PATCH", body: JSON.stringify(body) }),
-  deleteQuestion: (questionId: string) => request<any>(`/questions/${questionId}`, { method: "DELETE" }),
-  reorderQuestions: (formId: string, body: any) => request<any>(`/forms/${formId}/questions/reorder`, { method: "POST", body: JSON.stringify(body) }),
+  addQuestion: (formId: string, data: { type: string; title: string; description?: string; required?: boolean; position?: number; settings_json?: any; options?: any[] }) =>
+    request<any>(`/forms/${formId}/questions`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
 
-  // Public Respondent Flow
-  getPublicForm: (slug: string) => request<any>(`/public/forms/${slug}`),
-  submitPublicResponse: (slug: string, body: any) => request<any>(`/public/forms/${slug}/responses`, { method: "POST", body: JSON.stringify(body) }),
+  updateQuestion: (questionId: string, data: Partial<{ type: string; title: string; description: string; required: boolean; position: number; settings_json: any; options: any[] }>) =>
+    request<any>(`/questions/${questionId}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
 
-  // Responses & Analytics
-  getResponses: (formId: string, page = 1, pageSize = 20, search?: string) =>
-    request<any>(`/forms/${formId}/responses?page=${page}&page_size=${pageSize}${search ? `&search=${encodeURIComponent(search)}` : ""}`),
-  getResponseDetail: (responseId: string) => request<any>(`/responses/${responseId}`),
-  getAnalytics: (formId: string) => request<any>(`/forms/${formId}/analytics`),
-  getExportUrl: (formId: string) => `${API_BASE_URL}/forms/${formId}/responses/export`,
+  deleteQuestion: (questionId: string) =>
+    request<{ message: string }>(`/questions/${questionId}`, {
+      method: "DELETE",
+    }),
+
+  reorderQuestions: (formId: string, data: { questions: { id: string; position: number }[] }) =>
+    request<{ message: string }>(`/forms/${formId}/questions/reorder`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
 
   // Templates
   getTemplates: () => request<any[]>("/templates"),
-  useTemplate: (templateId: string) => request<any>(`/templates/${templateId}/use`, { method: "POST" }),
+  useTemplate: (templateId: string) =>
+    request<any>(`/templates/${templateId}/use`, {
+      method: "POST",
+    }),
 
-  // AI
-  generateAIForm: (prompt: string) => request<any>("/ai/generate-form", { method: "POST", body: JSON.stringify({ prompt }) }),
+  // AI Generator
+  generateFormAI: (prompt: string) =>
+    request<any>("/ai/generate", {
+      method: "POST",
+      body: JSON.stringify({ prompt }),
+    }),
+
+  generateAIForm: (prompt: string) =>
+    request<any>("/ai/generate", {
+      method: "POST",
+      body: JSON.stringify({ prompt }),
+    }),
+
+  // Public Respondent Endpoints
+  getPublicForm: (slug: string) => request<any>(`/public/f/${slug}`),
+
+  submitPublicResponse: (slug: string, data: { respondent_token: string; answers: { question_id: string; value: any }[]; completion_time_seconds?: number }) =>
+    request<{ response_id: string; status: string; thank_you_title: string; thank_you_message: string }>(`/public/f/${slug}/submit`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  // Response Management & Analytics
+  getResponses: (formId: string, page = 1, limit = 15, search = "") => {
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (search) params.append("search", search);
+    return request<{ responses: any[]; total: number; page: number; total_pages: number }>(`/forms/${formId}/responses?${params.toString()}`);
+  },
+
+  getResponseDetail: (responseId: string) => request<any>(`/responses/${responseId}`),
+
+  getExportUrl: (formId: string) => `${API_BASE_URL}/forms/${formId}/responses/export`,
+
+  getAnalytics: (formId: string) => request<any>(`/forms/${formId}/analytics`),
 };

@@ -1,18 +1,20 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { api, ApiError } from "../../../lib/api-client";
 import { Question, QuestionOption } from "../../../types";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Check, ArrowRight, ArrowLeft, RotateCcw, AlertCircle, Sparkles, Star
+  Check, ArrowRight, ArrowLeft, AlertCircle, Star
 } from "lucide-react";
 
 export default function PublicRespondentPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const slug = params.slug as string;
+  const urlTheme = searchParams.get("theme");
 
   const [formData, setFormData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -32,6 +34,16 @@ export default function PublicRespondentPage() {
   const startTimeRef = useRef<number>(Date.now());
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        window.parent.postMessage({ type: "CLOSE_PREVIEW" }, "*");
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   // Load Form Definition
   useEffect(() => {
     if (slug) {
@@ -40,7 +52,6 @@ export default function PublicRespondentPage() {
         .getPublicForm(slug)
         .then((data) => {
           setFormData(data);
-          // Check for saved local draft
           const savedKey = `formflow_draft_${slug}`;
           const localDraft = localStorage.getItem(savedKey);
           if (localDraft) {
@@ -77,7 +88,6 @@ export default function PublicRespondentPage() {
       if (!currentQ) return;
 
       if (e.key === "Enter" && !e.shiftKey) {
-        // Do not auto-advance long_text on enter unless Ctrl+Enter
         if (currentQ.type === "long_text" && !e.ctrlKey) return;
         e.preventDefault();
         handleNext();
@@ -227,7 +237,6 @@ export default function PublicRespondentPage() {
         completion_time_seconds: completionTime,
       });
 
-      // Clear draft after successful submission
       localStorage.removeItem(`formflow_draft_${slug}`);
       setSubmitted(true);
     } catch (err: any) {
@@ -284,7 +293,8 @@ export default function PublicRespondentPage() {
   }
 
   const currentQ = formData.questions[currentIndex];
-  const themeClass = `theme-${formData.theme_id || "burgundy"}`;
+  const activeThemeId = urlTheme || formData.theme_id || "burgundy";
+  const themeClass = `theme-${activeThemeId}`;
   const totalQ = formData.questions.length;
   const progressPct = ((currentIndex + 1) / totalQ) * 100;
 
@@ -543,32 +553,41 @@ export default function PublicRespondentPage() {
                 )}
               </div>
 
-              <button
-                onClick={handleNext}
-                disabled={submitting}
-                className="px-6 py-3 bg.current text-white bg-[#6E1F2A] hover:bg-[#581821] text-sm font-bold rounded-xl flex items-center gap-2 shadow-md hover:scale-[1.02] active:scale-95 transition-all"
-              >
-                {submitting ? (
-                  <span>Submitting...</span>
-                ) : currentIndex === totalQ - 1 ? (
-                  <span>Submit Response ✓</span>
-                ) : (
-                  <>
-                    <span>OK</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
+              {/* Next / Submit Button with Tooltip on Hover */}
+              <div className="relative group">
+                <button
+                  onClick={handleNext}
+                  disabled={submitting}
+                  className="px-6 py-3 text-sm font-bold rounded-xl flex items-center gap-2 shadow-md hover:scale-[1.02] active:scale-95 transition-all opacity-95 hover:opacity-100"
+                  style={{ backgroundColor: "var(--accent)", color: "var(--theme-btn-text, #ffffff)" }}
+                >
+                  {submitting ? (
+                    <span>Submitting...</span>
+                  ) : currentIndex === totalQ - 1 ? (
+                    <span>Submit Response ✓</span>
+                  ) : (
+                    <>
+                      <span>Next</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+
+                {/* Shortcut Key Tooltip on Hover */}
+                <div className="absolute right-0 -top-9 hidden group-hover:flex items-center gap-1 bg-[#191716] text-white text-[11px] font-mono px-2.5 py-1 rounded-lg shadow-lg whitespace-nowrap z-50">
+                  <span>Shortcut: {currentQ.type === "long_text" ? "Ctrl + Enter ↵" : "Enter ↵"}</span>
+                </div>
+              </div>
             </div>
           </motion.div>
         </AnimatePresence>
       </main>
 
-      {/* Footer shortcut hints */}
+      {/* Footer copyright */}
       <footer className="w-full max-w-2xl mx-auto flex items-center justify-between text-[11px] opacity-60 py-2 border-t border-current/10">
         <span>Powered by Ripple</span>
         <div className="hidden sm:flex items-center gap-3 font-mono">
-          <span>press Enter ↵ for next</span>
+          <span>Enter ↵ for next</span>
           <span>Shift+Enter for prev</span>
         </div>
       </footer>

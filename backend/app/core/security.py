@@ -1,5 +1,6 @@
 import uuid
 import bcrypt
+import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Any
 from jose import jwt, JWTError
@@ -11,10 +12,16 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     except Exception:
         return False
 
+async def verify_password_async(plain_password: str, hashed_password: str) -> bool:
+    return await asyncio.to_thread(verify_password, plain_password, hashed_password)
+
 def get_password_hash(password: str) -> str:
     pwd_bytes = password.encode('utf-8')
-    salt = bcrypt.gensalt()
+    salt = bcrypt.gensalt(rounds=10)
     return bcrypt.hashpw(pwd_bytes, salt).decode('utf-8')
+
+async def get_password_hash_async(password: str) -> str:
+    return await asyncio.to_thread(get_password_hash, password)
 
 def create_access_token(subject: str | Any, expires_delta: Optional[timedelta] = None) -> str:
     if expires_delta:

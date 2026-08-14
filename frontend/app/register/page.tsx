@@ -9,7 +9,7 @@ import { useToast } from "../../components/ui/toast";
 import { RippleLogo } from "../../components/RippleLogo";
 import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, AlertCircle } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -25,15 +25,38 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
+
+    const cleanName = name.trim();
+    const cleanEmail = email.trim();
+
+    if (!cleanName) {
+      setErrorMsg("Please enter your full name.");
+      return;
+    }
+
+    if (!cleanEmail || !cleanEmail.includes("@")) {
+      setErrorMsg("Please enter a valid email address.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMsg("Password must be at least 6 characters long.");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const res = await api.register({ name, email, password });
+      const res = await api.register({
+        name: cleanName,
+        email: cleanEmail,
+        password: password,
+      });
       setAuth(res.user, res.access_token);
       success("Account created successfully!");
       router.push("/dashboard");
     } catch (err: any) {
-      const msg = err instanceof ApiError ? err.message : "Registration failed.";
+      const msg = err instanceof ApiError ? err.message : "Registration failed. Please try again.";
       setErrorMsg(msg);
       toastError(msg);
     } finally {
@@ -54,8 +77,9 @@ export default function RegisterPage() {
         </div>
 
         {errorMsg && (
-          <div className="mb-4 p-3 bg-[#F7EEF0] border border-[#B54747]/30 rounded-lg text-xs text-[#B54747] font-medium">
-            {errorMsg}
+          <div className="mb-4 p-3 bg-[#F7EEF0] border border-[#B54747]/30 rounded-lg text-xs text-[#B54747] font-medium flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{errorMsg}</span>
           </div>
         )}
 

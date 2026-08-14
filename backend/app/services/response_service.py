@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, desc
 from sqlalchemy.orm import selectinload
 from fastapi import HTTPException, status
-from app.models.models import Form, FormVersion, Response, ResponseAnswer, FormEvent
+from app.models.models import Form, Question, QuestionOption, FormVersion, Response, ResponseAnswer, FormEvent
 from app.schemas.response import ResponseSubmitRequest, IndividualResponseView, ResponseListResponse, ResponseListItem, AnswerResponse
 from app.schemas.analytics import FormAnalyticsResponse, QuestionAnalytics, ChoiceBreakdown
 from app.services.form_service import verify_form_ownership
@@ -15,16 +15,23 @@ from app.services.form_service import verify_form_ownership
 EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 async def get_public_form_by_slug(db: AsyncSession, slug: str) -> dict:
-    stmt = select(Form).where(Form.slug == slug, Form.status == "published")
+    stmt = (
+        select(Form)
+        .where(Form.slug == slug)
+        .options(
+            selectinload(Form.questions).selectinload(Question.options),
+            selectinload(Form.versions)
+        )
+    )
     res = await db.execute(stmt)
     form = res.scalar_one_or_none()
     if not form:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail={"error": {"code": "FORM_NOT_FOUND", "message": "This form is unavailable or not published."}}
+            detail={"error": {"code": "FORM_NOT_FOUND", "message": "This form is unavailable or does not exist."}}
         )
 
-    # Get latest published FormVersion snapshot
+    # Get latest published FormVersion snapshot if published
     ver_stmt = (
         select(FormVersion)
         .where(FormVersion.form_id == form.id)
@@ -34,36 +41,65 @@ async def get_public_form_by_slug(db: AsyncSession, slug: str) -> dict:
     ver_res = await db.execute(ver_stmt)
     latest_ver = ver_res.scalar_one_or_none()
 
-    if not latest_ver:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail={"error": {"code": "NO_PUBLISHED_VERSION", "message": "Form published version missing."}}
+    if latest_ver and form.status == "published":
+        event = FormEvent(
+            form_id=form.id,
+            event_type="RESPONSE_STARTED",
+            metadata_json={"slug": slug, "version": latest_ver.version_number}
         )
+        db.add(event)
+        await db.commit()
 
-    # Record event
-    event = FormEvent(
-        form_id=form.id,
-        event_type="RESPONSE_STARTED",
-        metadata_json={"slug": slug, "version": latest_ver.version_number}
-    )
-    db.add(event)
-    await db.commit()
+        snapshot = latest_ver.snapshot_json
+        return {
+            "id": form.id,
+            "title": snapshot.get("title", form.title),
+            "description": snapshot.get("description", form.description),
+            "slug": form.slug,
+            "status": form.status,
+            "theme_id": snapshot.get("theme_id", form.theme_id),
+            "theme_data": snapshot.get("theme_data", form.theme_data),
+            "thank_you_title": snapshot.get("thank_you_title", form.thank_you_title),
+            "thank_you_message": snapshot.get("thank_you_message", form.thank_you_message),
+            "allow_back_navigation": snapshot.get("allow_back_navigation", form.allow_back_navigation),
+            "show_progress": snapshot.get("show_progress", form.show_progress),
+            "version_number": latest_ver.version_number,
+            "form_version_id": latest_ver.id,
+            "questions": snapshot.get("questions", [])
+        }
 
-    snapshot = latest_ver.snapshot_json
+    # Fallback for draft form preview or forms without snapshot
+    questions_data = []
+    for q in sorted(form.questions, key=lambda x: x.position):
+        opts = [
+            {"id": o.id, "label": o.label, "value": o.value, "position": o.position}
+            for o in sorted(q.options, key=lambda x: x.position)
+        ]
+        questions_data.append({
+            "id": q.id,
+            "type": q.type,
+            "title": q.title,
+            "description": q.description,
+            "required": q.required,
+            "position": q.position,
+            "settings_json": q.settings_json or {},
+            "options": opts
+        })
+
     return {
         "id": form.id,
-        "title": snapshot.get("title", form.title),
-        "description": snapshot.get("description", form.description),
+        "title": form.title,
+        "description": form.description,
         "slug": form.slug,
-        "theme_id": snapshot.get("theme_id", form.theme_id),
-        "theme_data": snapshot.get("theme_data", form.theme_data),
-        "thank_you_title": snapshot.get("thank_you_title", form.thank_you_title),
-        "thank_you_message": snapshot.get("thank_you_message", form.thank_you_message),
-        "allow_back_navigation": snapshot.get("allow_back_navigation", form.allow_back_navigation),
-        "show_progress": snapshot.get("show_progress", form.show_progress),
-        "version_number": latest_ver.version_number,
-        "form_version_id": latest_ver.id,
-        "questions": snapshot.get("questions", [])
+        "status": form.status,
+        "theme_id": form.theme_id,
+        "theme_data": form.theme_data,
+        "thank_you_title": form.thank_you_title,
+        "thank_you_message": form.thank_you_message,
+        "allow_back_navigation": form.allow_back_navigation,
+        "show_progress": form.show_progress,
+        "version_number": 0,
+        "questions": questions_data
     }
 
 async def submit_response(db: AsyncSession, slug: str, data: ResponseSubmitRequest) -> dict:

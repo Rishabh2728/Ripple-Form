@@ -16,7 +16,9 @@
     --brand-light: #F7EEF0;
   }
 
-  body {
+  html, body {
+    max-width: 100vw;
+    overflow-x: hidden !important;
     background-color: var(--bg-main);
     color: var(--text-primary);
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -40,6 +42,15 @@
   background: #6F6A67;
 }
 
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Focus ring accessibility */
 *:focus-visible {
   outline: 2px solid #6E1F2A;
@@ -51,28 +62,38 @@
   background-color: #FCFBF8;
   color: #191716;
   --accent: #6E1F2A;
+  --accent-hover: #581821;
+  --theme-btn-text: #FFFFFF;
 }
 
 .theme-midnight {
   background-color: #0F172A;
   color: #F8FAFC;
   --accent: #38BDF8;
+  --accent-hover: #0284C7;
+  --theme-btn-text: #0F172A;
 }
 
 .theme-forest {
   background-color: #F4F7F4;
   color: #1C2E24;
   --accent: #2F7D5B;
+  --accent-hover: #246347;
+  --theme-btn-text: #FFFFFF;
 }
 
 .theme-ocean {
   background-color: #F0F6FA;
   color: #0F2942;
   --accent: #41658A;
+  --accent-hover: #2E4B6B;
+  --theme-btn-text: #FFFFFF;
 }
 
 .theme-minimal {
   background-color: #FFFFFF;
   color: #111111;
   --accent: #111111;
+  --accent-hover: #333333;
+  --theme-btn-text: #FFFFFF;
 }
