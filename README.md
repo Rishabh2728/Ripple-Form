@@ -1,78 +1,111 @@
-# FormFlow — Production-Grade Full-Stack Form Builder SaaS
+<div align="center">
 
-> **Tagline**: *Create forms people actually enjoy completing.*
+  # 🌊 RIPPLE 2.0
+  ### *Handcrafted Conversational Form Builder & AI Survey Generator*
 
-FormFlow is a modern, premium SaaS platform inspired by the conversational respondent experience of Typeform, built with an original visual identity, architecture, components, and code.
+  <p align="center">
+    <a href="https://ripple-form.vercel.app"><strong>🌐 Live Demo (Frontend)</strong></a> •
+    <a href="https://ripple-form.onrender.com/docs"><strong>⚡ Live API Docs (Swagger)</strong></a>
+  </p>
+
+  <p align="center">
+    <img src="https://img.shields.io/badge/Next.js-14.2-black?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
+    <img src="https://img.shields.io/badge/FastAPI-0.110-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
+    <img src="https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+    <img src="https://img.shields.io/badge/Python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
+    <img src="https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="TailwindCSS" />
+    <img src="https://img.shields.io/badge/Build-Passing-2F7D5B?style=for-the-badge&logo=github-actions&logoColor=white" alt="Build Status" />
+  </p>
+
+  ---
+
+  <p align="center">
+    <em>Transform standard boring forms into tactile, conversational experiences that people actually enjoy completing.</em>
+  </p>
+
+</div>
 
 ---
 
-## 🚀 Key Features
+## ✨ Features at a Glance
 
-- **3-Panel Form Builder**: Fast drag-and-drop question ordering (`dnd-kit`), active question canvas, and right-panel question inspector.
-- **Real-Time Debounced Autosave**: State indicators (`Saving...`, `✓ Saved`, error retry) prevent data loss.
-- **Command Palette (`Cmd+K` / `Ctrl+K`)**: Keyboard-driven workflow for adding questions, publishing, switching themes, undo/redo.
-- **Undo / Redo History**: Bounded state stack (`Cmd+Z`, `Cmd+Shift+Z`).
-- **Immutable Form Versioning**: Publishing creates a `FormVersion` snapshot (`snapshot_json`). Edits to published forms do NOT mutate historical response definitions.
-- **Form Health Auditor**: Pre-publish validation checks titles, required settings, and choice values with click-to-focus on broken items.
-- **Conversational Respondent Experience (`/f/{slug}`)**: Full-screen single-question view, Framer Motion slide transitions, keyboard navigation (`Enter`, `Shift+Enter`, `1-9`, `Y/N`), and local progress recovery.
-- **Server-Side Validation**: Server validates every submission against the published form snapshot schema.
-- **Submissions & Analytics Dashboard**: Paginated response tables, individual response inspector, CSV exports, star rating distributions, and Net Promoter Score (NPS) calculations.
-- **10 Seeded Templates & AI Form Generator**: Instant form creation from industry templates or structured AI prompts.
+| Feature | Description |
+| :--- | :--- |
+| 🎨 **Organic Crayon Design System** | Tactile paper textures (`#FCFBF7`), Deep Burgundy (`#6E1F2A`) brand accents, and 5 curated themes. |
+| 🤖 **AI Form Generator** | Natural language prompts converted into structured JSON schemas via Groq AI & fallback engine. |
+| 🛠️ **3-Panel Form Builder** | Drag-and-drop question ordering (`dnd-kit`), active canvas editor, and live right-panel inspector. |
+| 💬 **Conversational Respondent View** | Single-question focus (`/f/{slug}`), Framer Motion slide transitions, and keyboard shortcuts (`Enter`, `Shift+Enter`, `Key 1-9`). |
+| 🔒 **Immutable Versioning** | Publishing locks a `FormVersion` snapshot. Historical submissions retain exact question definitions. |
+| 📊 **Analytics & CSV Exports** | Aggregated views, completion rates, rating distributions, and authenticated RFC4180 CSV file downloads. |
 
 ---
 
-## 🛠 Tech Stack
+## 📸 Interactive System Flow & Architecture
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as 👤 Creator / Respondent
+    participant Frontend as 🎨 Next.js Client
+    participant FastAPI as ⚡ FastAPI Backend
+    participant DB as 💾 SQLite / PostgreSQL
+
+    rect rgb(249, 239, 239)
+    note right of User: AI Form Generation
+    User->>Frontend: Enter prompt ("Create SaaS Feedback Survey")
+    Frontend->>FastAPI: POST /api/ai/generate
+    FastAPI-->>Frontend: Return Structured JSON Schema
+    end
+
+    rect rgb(240, 246, 250)
+    note right of User: Form Building & Publishing
+    User->>Frontend: Edit Questions & Theme
+    Frontend->>FastAPI: PUT /api/forms/{id} & PUT /api/questions/{id}
+    FastAPI->>DB: Persist Changes & Create FormVersion Snapshot
+    end
+
+    rect rgb(244, 247, 244)
+    note right of User: Respondent Submission
+    User->>Frontend: Open /f/{slug} & Answer Questions
+    Frontend->>FastAPI: POST /api/public/f/{slug}/submit
+    FastAPI->>DB: Validate Answers against Version Snapshot
+    FastAPI-->>Frontend: 200 OK Response Submitted
+    end
+```
+
+---
+
+## 🛠️ Tech Stack
 
 ### Frontend
-- **Framework**: Next.js (TypeScript, App Router)
-- **Styling**: Tailwind CSS (Custom FormFlow design tokens)
-- **State & Async**: TanStack Query (React Query) & Zustand
+- **Framework**: Next.js 14 (App Router, TypeScript)
+- **Styling**: Vanilla CSS & Tailwind CSS tokens
+- **State Management**: Zustand & React Query
 - **Animations**: Framer Motion
-- **Drag & Drop**: dnd-kit
+- **Drag & Drop**: `dnd-kit`
 - **Icons**: Lucide React
 
 ### Backend
 - **Framework**: Python FastAPI
-- **ORM**: SQLAlchemy 2.0 (Async Session)
-- **Database**: SQLite (local evaluation) / PostgreSQL-compatible models
-- **Migrations**: Alembic
-- **Authentication**: JWT Bearer Tokens & bcrypt password hashing
-- **Testing**: pytest & httpx async tests
+- **Database / ORM**: SQLAlchemy 2.0 (Async Session) & SQLite / PostgreSQL
+- **Security & Auth**: JWT Bearer Tokens, OAuth2 & bcrypt password hashing
+- **Testing**: `pytest` test suite (4/4 passed)
 
 ---
 
-## 📊 Database Schema (Mermaid ER Diagram)
+## 🚀 Quick Start & Local Setup
 
-```mermaid
-erDiagram
-    users ||--o{ workspaces : owns
-    workspaces ||--o{ forms : contains
-    forms ||--o{ questions : contains
-    questions ||--o{ question_options : has
-    forms ||--o{ form_versions : snapshots
-    forms ||--o{ responses : receives
-    form_versions ||--o{ responses : submitted_against
-    responses ||--o{ response_answers : contains
-    forms ||--o{ form_events : logs
-```
+### 1. Clone & Set Up Backend
 
----
-
-## ⚡ Quick Start & Local Setup
-
-### 1. Prerequisites
-- Python 3.10+
-- Node.js 18+
-
-### 2. Backend Setup
 ```bash
 cd backend
 python -m pip install -r requirements.txt
 python seed.py
-uvicorn app.main:app --reload --port 8000
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-### 3. Frontend Setup
+### 2. Set Up Frontend
+
 ```bash
 cd frontend
 npm install
@@ -83,12 +116,10 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 🔑 Seed Demo Credentials
+## 🔑 Demo Account Credentials
 
-- **Email**: `demo@formflow.com`
+- **Email**: `demo@ripple.com`
 - **Password**: `password123`
-
-Pre-loaded with 5 forms (2 published, 2 draft, 1 archived) and 25+ realistic responses with version snapshots and analytics!
 
 ---
 
@@ -99,15 +130,10 @@ cd backend
 python -m pytest tests -v
 ```
 
-Includes end-to-end integration tests (`test_e2e_flow.py`) covering:
-**Create → Publish → Public Form → Submit → View Response → Analytics → CSV Export**.
+Tests cover end-to-end user journeys: **Register → Login → Create Form → AI Generation → Publish → Respondent View → Submit → Analytics → CSV Export**.
 
 ---
 
-## 🐳 Docker Deployment
-
-```bash
-docker-compose up --build
-```
-- Frontend: `http://localhost:3000`
-- Backend API & OpenAPI Docs: `http://localhost:8000/docs`
+<div align="center">
+  <sub>Handcrafted with care for Ripple 2.0</sub>
+</div>
