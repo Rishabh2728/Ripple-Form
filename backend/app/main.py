@@ -50,26 +50,56 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 @app.middleware("http")
-async def add_observability_middleware(request: Request, call_next):
+async def add_observability_and_cors_middleware(request: Request, call_next):
     request_id = str(uuid.uuid4())
     request.state.request_id = request_id
     start_time = time.time()
 
+    # Handle Preflight OPTIONS requests explicitly
+    if request.method == "OPTIONS":
+        origin = request.headers.get("origin", "*")
+        return Response(
+            status_code=status.HTTP_200_OK,
+            headers={
+                "Access-Control-Allow-Origin": origin,
+                "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+                "Access-Control-Allow-Credentials": "true",
+            }
+        )
+
     response = await call_next(request)
 
     process_time = time.time() - start_time
+    origin = request.headers.get("origin", "*")
+    response.headers["Access-Control-Allow-Origin"] = origin
+    response.headers["Access-Control-Allow-Credentials"] = "true"
     response.headers["X-Request-ID"] = request_id
     response.headers["X-Process-Time"] = f"{process_time:.4f}s"
 
     logger.info(f"[{request.method}] {request.url.path} -> {response.status_code} ({process_time * 1000:.2f}ms)")
     return response
+
+@app.options("/{full_path:path}")
+async def options_handler(request: Request, full_path: str):
+    origin = request.headers.get("origin", "*")
+    return Response(
+        status_code=status.HTTP_200_OK,
+        headers={
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Credentials": "true",
+        }
+    )
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
@@ -81,24 +111,37 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         content = {"error": {"code": "HTTP_ERROR", "message": exc.detail}}
     else:
         content = {"error": {"code": "HTTP_ERROR", "message": str(exc.detail)}}
-    return JSONResponse(status_code=exc.status_code, content=content)
+
+    res = JSONResponse(status_code=exc.status_code, content=content)
+    origin = request.headers.get("origin", "*")
+    res.headers["Access-Control-Allow-Origin"] = origin
+    res.headers["Access-Control-Allow-Credentials"] = "true"
+    return res
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     issues = [f"{err['loc'][-1]}: {err['msg']}" for err in exc.errors()]
     msg = issues[0] if issues else "Invalid request payload."
-    return JSONResponse(
+    res = JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={"error": {"code": "VALIDATION_ERROR", "message": msg, "issues": issues}}
     )
+    origin = request.headers.get("origin", "*")
+    res.headers["Access-Control-Allow-Origin"] = origin
+    res.headers["Access-Control-Allow-Credentials"] = "true"
+    return res
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Unhandled Exception on {request.url.path}: {str(exc)}", exc_info=True)
-    return JSONResponse(
+    res = JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "An internal server error occurred."}}
     )
+    origin = request.headers.get("origin", "*")
+    res.headers["Access-Control-Allow-Origin"] = origin
+    res.headers["Access-Control-Allow-Credentials"] = "true"
+    return res
 
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
@@ -112,10 +155,12 @@ async def root():
 async def health_check():
     return {"status": "ok", "service": "Ripple Backend", "version": "1.0.0"}
 
-app.include_router(auth_router.router, prefix=settings.API_V1_STR)
-app.include_router(form_router.router, prefix=settings.API_V1_STR)
-app.include_router(question_router.router, prefix=settings.API_V1_STR)
-app.include_router(public_router.router, prefix=settings.API_V1_STR)
-app.include_router(response_router.router, prefix=settings.API_V1_STR)
-app.include_router(template_router.router, prefix=settings.API_V1_STR)
-app.include_router(ai_router.router, prefix=settings.API_V1_STR)
+# Include routers for both /api prefix and root prefix to handle all deployment URL variations
+for prefix in ["/api", ""]:
+    app.include_router(auth_router.router, prefix=prefix)
+    app.include_router(form_router.router, prefix=prefix)
+    app.include_router(question_router.router, prefix=prefix)
+    app.include_router(public_router.router, prefix=prefix)
+    app.include_router(response_router.router, prefix=prefix)
+    app.include_router(template_router.router, prefix=prefix)
+    app.include_router(ai_router.router, prefix=prefix)

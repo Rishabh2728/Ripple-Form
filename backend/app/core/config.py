@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite+aiosqlite:///./ripple.db"
 
     CORS_ORIGINS: Union[List[str], str] = [
+        "*",
+        "https://ripple-form.vercel.app",
+        "https://ripple-form.onrender.com",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:5173",
