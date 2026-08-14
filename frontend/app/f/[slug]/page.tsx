@@ -15,6 +15,16 @@ export default function PublicRespondentPage() {
   const searchParams = useSearchParams();
   const slug = params.slug as string;
   const urlTheme = searchParams.get("theme");
+  const isPreviewParam = searchParams.get("preview") === "true";
+  const [inIframe, setInIframe] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.self !== window.top) {
+      setInIframe(true);
+    }
+  }, []);
+
+  const isPreviewMode = isPreviewParam || inIframe;
 
   const [formData, setFormData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -320,26 +330,28 @@ export default function PublicRespondentPage() {
     >
       {/* Top Preview Header & Progress Bar */}
       <header className="w-full max-w-3xl mx-auto space-y-3">
-        {/* Top Iframe Preview Mode Ribbon Banner */}
-        <div
-          className="flex items-center justify-between px-4 py-2 rounded-2xl border-2 shadow-xs text-xs font-bold"
-          style={{ backgroundColor: "var(--theme-surface)", borderColor: "var(--theme-border)", color: "var(--theme-text)" }}
-        >
-          <div className="flex items-center gap-2" style={{ color: "var(--theme-accent)" }}>
-            <Eye className="w-4 h-4 animate-pulse" />
-            <span>LIVE PREVIEW MODE</span>
+        {/* Top Iframe Preview Mode Ribbon Banner (Only shown in preview/iframe mode) */}
+        {isPreviewMode && (
+          <div
+            className="flex items-center justify-between px-4 py-2 rounded-2xl border-2 shadow-xs text-xs font-bold"
+            style={{ backgroundColor: "var(--theme-surface)", borderColor: "var(--theme-border)", color: "var(--theme-text)" }}
+          >
+            <div className="flex items-center gap-2" style={{ color: "var(--theme-accent)" }}>
+              <Eye className="w-4 h-4 animate-pulse" />
+              <span>LIVE PREVIEW MODE</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="hidden sm:inline text-mono text-[11px]" style={{ color: "var(--theme-subtext)" }}>Press ESC to Exit</span>
+              <button
+                onClick={() => window.parent.postMessage({ type: "CLOSE_PREVIEW" }, "*")}
+                className="px-2.5 py-1 rounded-lg text-[11px] font-extrabold border transition-colors"
+                style={{ backgroundColor: "var(--theme-bg)", borderColor: "var(--theme-border)", color: "var(--theme-text)" }}
+              >
+                Exit Preview ✕
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="hidden sm:inline text-mono text-[11px]" style={{ color: "var(--theme-subtext)" }}>Press ESC to Exit</span>
-            <button
-              onClick={() => window.parent.postMessage({ type: "CLOSE_PREVIEW" }, "*")}
-              className="px-2.5 py-1 rounded-lg text-[11px] font-extrabold border transition-colors"
-              style={{ backgroundColor: "var(--theme-bg)", borderColor: "var(--theme-border)", color: "var(--theme-text)" }}
-            >
-              Exit Preview ✕
-            </button>
-          </div>
-        </div>
+        )}
 
         {/* Progress Bar Container */}
         <div className="space-y-1.5 pt-1">

@@ -628,7 +628,7 @@ export default function BuilderPage() {
                 Exit Preview
               </Button>
             </div>
-            <iframe key={`${form.theme_id}`} src={`/f/${form.slug}?theme=${form.theme_id}`} className="w-full flex-1 border-none" />
+            <iframe key={`${form.theme_id}`} src={`/f/${form.slug}?preview=true&theme=${form.theme_id}`} className="w-full flex-1 border-none" />
           </div>
         </div>
       )}
