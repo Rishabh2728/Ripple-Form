@@ -6,7 +6,7 @@ import { api, ApiError } from "../../../lib/api-client";
 import { Question, QuestionOption } from "../../../types";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Check, ArrowRight, ArrowLeft, AlertCircle, Star, Eye, Command, RotateCcw
+  Check, ArrowRight, ArrowLeft, AlertCircle, Star, Eye
 } from "lucide-react";
 
 export default function PublicRespondentPage() {
@@ -227,33 +227,43 @@ export default function PublicRespondentPage() {
   };
 
   // Determine active theme class
-  const themeClass = `theme-${urlTheme || formData?.theme_id || "burgundy"}`;
+  const activeThemeId = urlTheme || formData?.theme_id || "burgundy";
+  const themeClass = `theme-${activeThemeId}`;
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-crayon-paper text-[#1C1917]">
-        <div className="w-12 h-12 rounded-2xl bg-[#6E1F2A] text-white flex items-center justify-center shadow-md animate-pulse mb-3">
+      <div className={`min-h-screen flex flex-col items-center justify-center ${themeClass} bg-crayon-paper`}>
+        <div
+          className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md animate-pulse mb-3"
+          style={{ backgroundColor: "var(--theme-accent, #6E1F2A)", color: "var(--theme-btn-text, #FFFFFF)" }}
+        >
           <Eye className="w-6 h-6 animate-spin" />
         </div>
-        <p className="text-xs font-extrabold text-[#1C1917]">Loading Form Preview...</p>
+        <p className="text-xs font-extrabold" style={{ color: "var(--theme-text, #1C1917)" }}>
+          Loading Form Preview...
+        </p>
       </div>
     );
   }
 
   if (errorMsg || !formData) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-crayon-paper px-4">
-        <div className="crayon-card bg-white p-8 max-w-md w-full text-center space-y-4">
+      <div className={`min-h-screen flex items-center justify-center p-4 ${themeClass} bg-crayon-paper`}>
+        <div
+          className="crayon-card p-8 max-w-md w-full text-center space-y-4 border-2"
+          style={{ backgroundColor: "var(--theme-surface)", borderColor: "var(--theme-border)", color: "var(--theme-text)" }}
+        >
           <div className="w-12 h-12 rounded-2xl bg-[#F9EFEF] text-[#6E1F2A] flex items-center justify-center mx-auto border border-[#F0C9CD]">
             <AlertCircle className="w-6 h-6" />
           </div>
-          <h2 className="text-xl font-extrabold text-[#1C1917]">Form Unavailable</h2>
-          <p className="text-xs text-[#78716C] font-medium leading-relaxed">
+          <h2 className="text-xl font-extrabold">Form Unavailable</h2>
+          <p className="text-xs font-medium leading-relaxed" style={{ color: "var(--theme-subtext)" }}>
             {errorMsg || "The requested form does not exist or has been archived."}
           </p>
           <button
             onClick={() => router.push("/")}
-            className="crayon-button w-full py-3 bg-[#6E1F2A] text-white text-xs font-extrabold rounded-2xl"
+            className="crayon-button w-full py-3 text-xs font-extrabold rounded-2xl"
+            style={{ backgroundColor: "var(--theme-accent)", color: "var(--theme-btn-text)" }}
           >
             Return to Home
           </button>
@@ -269,20 +279,21 @@ export default function PublicRespondentPage() {
 
   if (submitted) {
     return (
-      <div className={`min-h-screen flex items-center justify-center p-4 ${themeClass}`}>
+      <div className={`min-h-screen flex items-center justify-center p-4 ${themeClass} bg-crayon-paper`}>
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="crayon-card bg-white p-8 sm:p-12 max-w-md w-full text-center space-y-5 border-2 border-[#E6DFD5]"
+          className="crayon-card p-8 sm:p-12 max-w-md w-full text-center space-y-5 border-2"
+          style={{ backgroundColor: "var(--theme-surface)", borderColor: "var(--theme-border)", color: "var(--theme-text)" }}
         >
           <div className="w-16 h-16 rounded-full bg-[#E6F4EA] text-[#059669] flex items-center justify-center mx-auto border-2 border-[#34D399] shadow-sm">
             <Check className="w-8 h-8" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1C1917]">
+          <h1 className="text-2xl sm:text-3xl font-extrabold">
             {formData.thank_you_message || "Response Submitted!"}
           </h1>
-          <p className="text-xs sm:text-sm text-[#78716C] font-medium leading-relaxed">
-            Thank you for completing <strong className="text-[#1C1917]">"{formData.title}"</strong>. Your submission has been recorded.
+          <p className="text-xs sm:text-sm font-medium leading-relaxed" style={{ color: "var(--theme-subtext)" }}>
+            Thank you for completing <strong>"{formData.title}"</strong>. Your submission has been recorded.
           </p>
           <button
             onClick={() => {
@@ -291,7 +302,8 @@ export default function PublicRespondentPage() {
               setCurrentIndex(0);
               startTimeRef.current = Date.now();
             }}
-            className="crayon-button w-full py-3 bg-[#6E1F2A] text-white text-xs font-extrabold rounded-2xl"
+            className="crayon-button w-full py-3 text-xs font-extrabold rounded-2xl"
+            style={{ backgroundColor: "var(--theme-accent)", color: "var(--theme-btn-text)" }}
           >
             Submit Another Response
           </button>
@@ -301,20 +313,27 @@ export default function PublicRespondentPage() {
   }
 
   return (
-    <div className={`min-h-screen flex flex-col justify-between p-4 sm:p-8 ${themeClass} bg-crayon-paper`}>
+    <div
+      className={`min-h-screen flex flex-col justify-between p-4 sm:p-8 ${themeClass} bg-crayon-paper`}
+      style={{ backgroundColor: "var(--theme-bg)", color: "var(--theme-text)" }}
+    >
       {/* Top Preview Header & Progress Bar */}
       <header className="w-full max-w-3xl mx-auto space-y-3">
         {/* Top Iframe Preview Mode Ribbon Banner */}
-        <div className="flex items-center justify-between bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl border-2 border-[#E6DFD5] shadow-xs text-xs font-bold text-[#1C1917]">
-          <div className="flex items-center gap-2 text-[#6E1F2A]">
+        <div
+          className="flex items-center justify-between px-4 py-2 rounded-2xl border-2 shadow-xs text-xs font-bold"
+          style={{ backgroundColor: "var(--theme-surface)", borderColor: "var(--theme-border)", color: "var(--theme-text)" }}
+        >
+          <div className="flex items-center gap-2" style={{ color: "var(--theme-accent)" }}>
             <Eye className="w-4 h-4 animate-pulse" />
             <span>LIVE PREVIEW MODE</span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="hidden sm:inline text-mono text-[11px] text-[#78716C]">Press ESC to Exit</span>
+            <span className="hidden sm:inline text-mono text-[11px]" style={{ color: "var(--theme-subtext)" }}>Press ESC to Exit</span>
             <button
               onClick={() => window.parent.postMessage({ type: "CLOSE_PREVIEW" }, "*")}
-              className="px-2.5 py-1 rounded-lg bg-[#F9EFEF] text-[#6E1F2A] border border-[#F0C9CD] hover:bg-[#F0C9CD] transition-colors text-[11px] font-extrabold"
+              className="px-2.5 py-1 rounded-lg text-[11px] font-extrabold border transition-colors"
+              style={{ backgroundColor: "var(--theme-bg)", borderColor: "var(--theme-border)", color: "var(--theme-text)" }}
             >
               Exit Preview ✕
             </button>
@@ -323,13 +342,14 @@ export default function PublicRespondentPage() {
 
         {/* Progress Bar Container */}
         <div className="space-y-1.5 pt-1">
-          <div className="flex items-center justify-between text-xs font-extrabold text-[#1C1917]">
+          <div className="flex items-center justify-between text-xs font-extrabold">
             <span className="truncate max-w-[200px]">{formData.title}</span>
-            <span className="font-mono text-[#6E1F2A]">{progressPercent}% Completed</span>
+            <span className="font-mono" style={{ color: "var(--theme-accent)" }}>{progressPercent}% Completed</span>
           </div>
-          <div className="w-full bg-[#E6DFD5] h-2 rounded-full overflow-hidden">
+          <div className="w-full h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--theme-border)" }}>
             <motion.div
-              className="h-full bg-[#6E1F2A]"
+              className="h-full"
+              style={{ backgroundColor: "var(--theme-accent)" }}
               initial={{ width: 0 }}
               animate={{ width: `${progressPercent}%` }}
               transition={{ duration: 0.3 }}
@@ -340,10 +360,10 @@ export default function PublicRespondentPage() {
 
       {/* Progress Recovery Banner */}
       {showDraftPrompt && (
-        <div className="w-full max-w-2xl mx-auto my-4 bg-white border-2 border-[#FBBF24] p-4 rounded-2xl shadow-md flex items-center justify-between gap-4 text-xs">
+        <div className="w-full max-w-2xl mx-auto my-4 border-2 border-[#FBBF24] p-4 rounded-2xl shadow-md flex items-center justify-between gap-4 text-xs" style={{ backgroundColor: "var(--theme-surface)" }}>
           <div className="space-y-0.5">
             <p className="font-extrabold text-[#D97706]">Resume Previous Session?</p>
-            <p className="text-[#78716C] font-medium">We found your unfinished draft answers for this form.</p>
+            <p className="font-medium" style={{ color: "var(--theme-subtext)" }}>We found your unfinished draft answers for this form.</p>
           </div>
           <div className="flex gap-2">
             <button
@@ -354,7 +374,8 @@ export default function PublicRespondentPage() {
             </button>
             <button
               onClick={discardDraft}
-              className="px-3 py-1.5 bg-[#F6F3ED] text-[#78716C] font-bold rounded-xl hover:bg-[#E6DFD5]"
+              className="px-3 py-1.5 font-bold rounded-xl"
+              style={{ backgroundColor: "var(--theme-bg)", color: "var(--theme-text)" }}
             >
               Start Fresh
             </button>
@@ -371,21 +392,22 @@ export default function PublicRespondentPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
             transition={{ duration: 0.2 }}
-            className="crayon-card bg-white p-8 sm:p-10 border-2 border-[#E6DFD5] w-full space-y-6 shadow-md"
+            className="crayon-card p-8 sm:p-10 border-2 w-full space-y-6 shadow-md"
+            style={{ backgroundColor: "var(--theme-surface)", borderColor: "var(--theme-border)", color: "var(--theme-text)" }}
           >
             {/* Question title & header */}
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-xs font-extrabold text-[#6E1F2A]">
+              <div className="flex items-center gap-2 text-xs font-extrabold" style={{ color: "var(--theme-accent)" }}>
                 <span>Question {String(currentIndex + 1).padStart(2, "0")} of {totalQ}</span>
                 {currentQ.required && <span className="text-[#B54747] font-bold">* Required</span>}
               </div>
 
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1C1917] tracking-tight leading-tight">
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
                 {currentQ.title}
               </h1>
 
               {currentQ.description && (
-                <p className="text-xs sm:text-sm text-[#78716C] font-medium leading-relaxed">
+                <p className="text-xs sm:text-sm font-medium leading-relaxed" style={{ color: "var(--theme-subtext)" }}>
                   {currentQ.description}
                 </p>
               )}
@@ -400,7 +422,8 @@ export default function PublicRespondentPage() {
                   value={answers[currentQ.id] || ""}
                   onChange={(e) => handleAnswer(currentQ.id, e.target.value)}
                   placeholder="Type your answer here..."
-                  className="w-full text-base sm:text-lg py-3 px-4 bg-[#F6F3ED] border-2 border-[#E6DFD5] rounded-2xl focus:outline-none focus:border-[#6E1F2A] font-semibold transition-colors"
+                  className="w-full text-base sm:text-lg py-3 px-4 rounded-2xl border-2 focus:outline-none font-semibold transition-colors"
+                  style={{ backgroundColor: "var(--theme-bg)", borderColor: "var(--theme-border)", color: "var(--theme-text)" }}
                 />
               )}
 
@@ -411,7 +434,8 @@ export default function PublicRespondentPage() {
                   value={answers[currentQ.id] || ""}
                   onChange={(e) => handleAnswer(currentQ.id, e.target.value)}
                   placeholder="Type your detailed response..."
-                  className="w-full text-sm p-4 bg-[#F6F3ED] border-2 border-[#E6DFD5] rounded-2xl focus:outline-none focus:border-[#6E1F2A] font-semibold resize-y transition-colors"
+                  className="w-full text-sm p-4 rounded-2xl border-2 focus:outline-none font-semibold resize-y transition-colors"
+                  style={{ backgroundColor: "var(--theme-bg)", borderColor: "var(--theme-border)", color: "var(--theme-text)" }}
                 />
               )}
 
@@ -422,7 +446,8 @@ export default function PublicRespondentPage() {
                   value={answers[currentQ.id] || ""}
                   onChange={(e) => handleAnswer(currentQ.id, e.target.value)}
                   placeholder="name@company.com"
-                  className="w-full text-base sm:text-lg py-3 px-4 bg-[#F6F3ED] border-2 border-[#E6DFD5] rounded-2xl focus:outline-none focus:border-[#6E1F2A] font-semibold transition-colors"
+                  className="w-full text-base sm:text-lg py-3 px-4 rounded-2xl border-2 focus:outline-none font-semibold transition-colors"
+                  style={{ backgroundColor: "var(--theme-bg)", borderColor: "var(--theme-border)", color: "var(--theme-text)" }}
                 />
               )}
 
@@ -433,7 +458,8 @@ export default function PublicRespondentPage() {
                   value={answers[currentQ.id] ?? ""}
                   onChange={(e) => handleAnswer(currentQ.id, e.target.value)}
                   placeholder="Type a number..."
-                  className="w-full text-base sm:text-lg py-3 px-4 bg-[#F6F3ED] border-2 border-[#E6DFD5] rounded-2xl focus:outline-none focus:border-[#6E1F2A] font-semibold transition-colors"
+                  className="w-full text-base sm:text-lg py-3 px-4 rounded-2xl border-2 focus:outline-none font-semibold transition-colors"
+                  style={{ backgroundColor: "var(--theme-bg)", borderColor: "var(--theme-border)", color: "var(--theme-text)" }}
                 />
               )}
 
@@ -445,16 +471,22 @@ export default function PublicRespondentPage() {
                       <button
                         key={opt.id || idx}
                         onClick={() => handleAnswer(currentQ.id, opt.value)}
-                        className={`w-full p-4 rounded-2xl border-2 text-left font-bold text-xs sm:text-sm transition-all flex items-center justify-between ${
+                        className="w-full p-4 rounded-2xl border-2 text-left font-bold text-xs sm:text-sm transition-all flex items-center justify-between"
+                        style={
                           isSelected
-                            ? "bg-[#6E1F2A] text-white border-[#6E1F2A] shadow-sm"
-                            : "border-[#E6DFD5] hover:border-[#6E1F2A] bg-white text-[#1C1917]"
-                        }`}
+                            ? { backgroundColor: "var(--theme-accent)", color: "var(--theme-btn-text)", borderColor: "var(--theme-accent)" }
+                            : { backgroundColor: "var(--theme-surface)", color: "var(--theme-text)", borderColor: "var(--theme-border)" }
+                        }
                       >
                         <div className="flex items-center gap-3">
-                          <span className={`w-6 h-6 rounded-lg text-xs font-mono font-bold flex items-center justify-center border ${
-                            isSelected ? "bg-white/20 text-white border-white/30" : "bg-[#F6F3ED] text-[#78716C] border-[#E6DFD5]"
-                          }`}>
+                          <span
+                            className="w-6 h-6 rounded-lg text-xs font-mono font-bold flex items-center justify-center border"
+                            style={{
+                              backgroundColor: isSelected ? "rgba(255,255,255,0.2)" : "var(--theme-bg)",
+                              borderColor: isSelected ? "rgba(255,255,255,0.3)" : "var(--theme-border)",
+                              color: isSelected ? "var(--theme-btn-text)" : "var(--theme-text)"
+                            }}
+                          >
                             {idx + 1}
                           </span>
                           <span>{opt.label}</span>
@@ -474,11 +506,12 @@ export default function PublicRespondentPage() {
                       <button
                         key={choice}
                         onClick={() => handleAnswer(currentQ.id, choice)}
-                        className={`flex-1 py-4 px-6 rounded-2xl border-2 font-extrabold text-sm transition-all flex items-center justify-center gap-2 ${
+                        className="flex-1 py-4 px-6 rounded-2xl border-2 font-extrabold text-sm transition-all flex items-center justify-center gap-2"
+                        style={
                           isSelected
-                            ? "bg-[#6E1F2A] text-white border-[#6E1F2A] shadow-sm"
-                            : "border-[#E6DFD5] hover:border-[#6E1F2A] bg-white text-[#1C1917]"
-                        }`}
+                            ? { backgroundColor: "var(--theme-accent)", color: "var(--theme-btn-text)", borderColor: "var(--theme-accent)" }
+                            : { backgroundColor: "var(--theme-surface)", color: "var(--theme-text)", borderColor: "var(--theme-border)" }
+                        }
                       >
                         <span className="font-mono text-xs opacity-70">Key [{choice === "Yes" ? "Y" : "N"}]</span>
                         <span>— {choice}</span>
@@ -496,11 +529,12 @@ export default function PublicRespondentPage() {
                       <button
                         key={score}
                         onClick={() => handleAnswer(currentQ.id, score)}
-                        className={`w-12 sm:w-16 h-14 sm:h-16 rounded-2xl border-2 flex flex-col items-center justify-center transition-all ${
+                        className="w-12 sm:w-16 h-14 sm:h-16 rounded-2xl border-2 flex flex-col items-center justify-center transition-all"
+                        style={
                           isSelected
-                            ? "bg-[#6E1F2A] text-white border-[#6E1F2A] shadow-sm"
-                            : "border-[#E6DFD5] hover:border-[#6E1F2A] bg-white text-[#1C1917]"
-                        }`}
+                            ? { backgroundColor: "var(--theme-accent)", color: "var(--theme-btn-text)", borderColor: "var(--theme-accent)" }
+                            : { backgroundColor: "var(--theme-surface)", color: "var(--theme-text)", borderColor: "var(--theme-border)" }
+                        }
                       >
                         <Star className={`w-5 h-5 ${isSelected ? "text-yellow-300 fill-yellow-300" : ""}`} />
                         <span className="text-xs font-extrabold mt-1">{score}</span>
@@ -524,12 +558,13 @@ export default function PublicRespondentPage() {
             )}
 
             {/* Navigation buttons */}
-            <div className="pt-4 border-t border-[#E6DFD5] flex items-center justify-between">
+            <div className="pt-4 border-t flex items-center justify-between" style={{ borderColor: "var(--theme-border)" }}>
               <div className="flex items-center gap-2">
                 {currentIndex > 0 && formData.allow_back_navigation && (
                   <button
                     onClick={handlePrev}
-                    className="p-3 rounded-2xl border-2 border-[#E6DFD5] hover:border-[#6E1F2A] text-[#1C1917] bg-white transition-all"
+                    className="p-3 rounded-2xl border-2 transition-all"
+                    style={{ backgroundColor: "var(--theme-surface)", borderColor: "var(--theme-border)", color: "var(--theme-text)" }}
                     title="Previous Question (Shift+Enter)"
                   >
                     <ArrowLeft className="w-4 h-4" />
@@ -542,7 +577,8 @@ export default function PublicRespondentPage() {
                 <button
                   onClick={handleNext}
                   disabled={submitting}
-                  className="crayon-button px-7 py-3 bg-[#6E1F2A] hover:bg-[#541720] text-white text-xs font-extrabold rounded-2xl flex items-center gap-2 shadow-sm"
+                  className="crayon-button px-7 py-3 text-xs font-extrabold rounded-2xl flex items-center gap-2 shadow-sm"
+                  style={{ backgroundColor: "var(--theme-accent)", color: "var(--theme-btn-text)" }}
                 >
                   {submitting ? (
                     <span>Submitting...</span>
@@ -567,7 +603,7 @@ export default function PublicRespondentPage() {
       </main>
 
       {/* Footer copyright */}
-      <footer className="w-full max-w-2xl mx-auto flex items-center justify-between text-xs text-[#78716C] font-semibold py-2">
+      <footer className="w-full max-w-2xl mx-auto flex items-center justify-between text-xs font-semibold py-2" style={{ color: "var(--theme-subtext)" }}>
         <span>Powered by Ripple</span>
         <div className="hidden sm:flex items-center gap-3 font-mono text-[11px]">
           <span>Enter ↵ for next</span>

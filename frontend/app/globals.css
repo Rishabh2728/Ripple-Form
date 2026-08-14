@@ -14,6 +14,16 @@
     --brand-burgundy: #6E1F2A;
     --brand-hover: #541720;
     --brand-light: #F9EFEF;
+
+    /* Theme Defaults */
+    --theme-bg: #FCFBF7;
+    --theme-surface: #FFFFFF;
+    --theme-border: #E6DFD5;
+    --theme-text: #1C1917;
+    --theme-subtext: #78716C;
+    --theme-accent: #6E1F2A;
+    --theme-accent-hover: #541720;
+    --theme-btn-text: #FFFFFF;
   }
 
   html, body {
@@ -28,36 +38,36 @@
 
 /* Organic Crayon Paper Texture Overlay */
 .bg-crayon-paper {
-  background-color: #FCFBF7;
-  background-image: radial-gradient(#E6DFD5 0.75px, transparent 0.75px), radial-gradient(#E6DFD5 0.75px, #FCFBF7 0.75px);
+  background-color: var(--theme-bg, #FCFBF7);
+  background-image: radial-gradient(#E6DFD5 0.75px, transparent 0.75px), radial-gradient(#E6DFD5 0.75px, var(--theme-bg, #FCFBF7) 0.75px);
   background-size: 30px 30px;
   background-position: 0 0, 15px 15px;
 }
 
 /* Elegant Brand Crayon Card & Surface Utilities */
 .crayon-card {
-  background-color: #FFFFFF;
-  border: 2px solid #E6DFD5;
+  background-color: var(--theme-surface, #FFFFFF);
+  border: 2px solid var(--theme-border, #E6DFD5);
   border-radius: 1.5rem;
-  box-shadow: 2px 2px 0px 0px #E6DFD5;
+  box-shadow: 2px 2px 0px 0px var(--theme-border, #E6DFD5);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .crayon-card:hover {
-  border-color: #D6CEC3;
-  box-shadow: 3px 3px 0px 0px #D6CEC3;
+  border-color: var(--theme-accent, #6E1F2A);
+  box-shadow: 3px 3px 0px 0px var(--theme-accent, #6E1F2A);
 }
 
 .crayon-card-brand {
-  background: linear-gradient(135deg, #FFFFFF 75%, #FCFBF7 100%);
-  border: 2px solid #E6DFD5;
-  box-shadow: 2px 2px 0px 0px #E6DFD5;
+  background: var(--theme-surface, #FFFFFF);
+  border: 2px solid var(--theme-border, #E6DFD5);
+  box-shadow: 2px 2px 0px 0px var(--theme-border, #E6DFD5);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .crayon-card-brand:hover {
-  border-color: #F0C9CD;
-  box-shadow: 3px 3px 0px 0px #F0C9CD;
+  border-color: var(--theme-border, #E6DFD5);
+  box-shadow: 3px 3px 0px 0px var(--theme-border, #E6DFD5);
 }
 
 .crayon-button {
@@ -76,24 +86,60 @@
   box-shadow: 1px 1px 0px 0px #1C1917;
 }
 
-/* Pulsing Demo Credentials Glow */
-@keyframes demo-pulse-glow {
-  0% {
-    box-shadow: 0 0 0 0 rgba(110, 31, 42, 0.2), 3px 3px 0px 0px #F0C9CD;
-    border-color: #F0C9CD;
-  }
-  50% {
-    box-shadow: 0 0 15px 2px rgba(110, 31, 42, 0.15), 3px 3px 0px 0px #F0C9CD;
-    border-color: #F0C9CD;
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(110, 31, 42, 0.2), 3px 3px 0px 0px #F0C9CD;
-    border-color: #F0C9CD;
-  }
+/* Respondent Theme Definitions */
+.theme-burgundy {
+  --theme-bg: #FCFBF7;
+  --theme-surface: #FFFFFF;
+  --theme-border: #E6DFD5;
+  --theme-text: #1C1917;
+  --theme-subtext: #78716C;
+  --theme-accent: #6E1F2A;
+  --theme-accent-hover: #541720;
+  --theme-btn-text: #FFFFFF;
 }
 
-.animate-demo-card {
-  animation: demo-pulse-glow 3s infinite ease-in-out;
+.theme-midnight {
+  --theme-bg: #0F172A;
+  --theme-surface: #1E293B;
+  --theme-border: #334155;
+  --theme-text: #F8FAFC;
+  --theme-subtext: #94A3B8;
+  --theme-accent: #38BDF8;
+  --theme-accent-hover: #0284C7;
+  --theme-btn-text: #0F172A;
+}
+
+.theme-forest {
+  --theme-bg: #F4F7F4;
+  --theme-surface: #FFFFFF;
+  --theme-border: #D2E2D8;
+  --theme-text: #1C2E24;
+  --theme-subtext: #527A64;
+  --theme-accent: #2F7D5B;
+  --theme-accent-hover: #246347;
+  --theme-btn-text: #FFFFFF;
+}
+
+.theme-ocean {
+  --theme-bg: #F0F6FA;
+  --theme-surface: #FFFFFF;
+  --theme-border: #CBE0F1;
+  --theme-text: #0F2942;
+  --theme-subtext: #5A7E9E;
+  --theme-accent: #41658A;
+  --theme-accent-hover: #2E4B6B;
+  --theme-btn-text: #FFFFFF;
+}
+
+.theme-minimal {
+  --theme-bg: #FFFFFF;
+  --theme-surface: #FAFAFA;
+  --theme-border: #E5E5E5;
+  --theme-text: #111111;
+  --theme-subtext: #666666;
+  --theme-accent: #111111;
+  --theme-accent-hover: #333333;
+  --theme-btn-text: #FFFFFF;
 }
 
 /* Custom Scrollbars */
@@ -110,45 +156,4 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #78716C;
-}
-
-/* Respondent Theme Classes */
-.theme-burgundy {
-  background-color: #FCFBF7;
-  color: #1C1917;
-  --accent: #6E1F2A;
-  --accent-hover: #541720;
-  --theme-btn-text: #FFFFFF;
-}
-
-.theme-midnight {
-  background-color: #0F172A;
-  color: #F8FAFC;
-  --accent: #38BDF8;
-  --accent-hover: #0284C7;
-  --theme-btn-text: #0F172A;
-}
-
-.theme-forest {
-  background-color: #F4F7F4;
-  color: #1C2E24;
-  --accent: #2F7D5B;
-  --accent-hover: #246347;
-  --theme-btn-text: #FFFFFF;
-}
-
-.theme-ocean {
-  background-color: #F0F6FA;
-  color: #0F2942;
-  --accent: #41658A;
-  --accent-hover: #2E4B6B;
-  --theme-btn-text: #FFFFFF;
-}
-
-.theme-minimal {
-  background-color: #FFFFFF;
-  color: #111111;
-  --accent: #111111;
-  --accent-hover: #333333;
-  --theme-btn-text: #FFFFFF;
 }
