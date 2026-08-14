@@ -18,6 +18,7 @@ async def create_question_endpoint(
     """Add a new question to a form."""
     return await add_question(db, form_id, current_user["id"], data)
 
+@router.put("/questions/{question_id}", response_model=QuestionResponse)
 @router.patch("/questions/{question_id}", response_model=QuestionResponse)
 async def update_question_endpoint(
     question_id: str,
@@ -38,6 +39,7 @@ async def delete_question_endpoint(
     return await delete_question(db, question_id, current_user["id"])
 
 @router.post("/forms/{form_id}/questions/reorder", response_model=List[QuestionResponse])
+@router.put("/forms/{form_id}/questions/reorder", response_model=List[QuestionResponse])
 async def reorder_questions_endpoint(
     form_id: str,
     data: QuestionReorderRequest,

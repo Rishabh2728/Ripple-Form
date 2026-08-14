@@ -38,6 +38,7 @@ async def get_form(
     """Get single form details including all questions and options."""
     return await verify_form_ownership(db, form_id, current_user["id"])
 
+@router.put("/{form_id}", response_model=FormResponse)
 @router.patch("/{form_id}", response_model=FormResponse)
 async def update_form_details(
     form_id: str,
