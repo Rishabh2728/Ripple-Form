@@ -180,7 +180,13 @@ export const api = {
   // Public Respondent Endpoints
   getPublicForm: (slug: string) => request<any>(`/public/f/${slug}`),
 
-  submitPublicResponse: (slug: string, data: { respondent_token: string; answers: { question_id: string; value: any }[]; completion_time_seconds?: number }) =>
+  submitPublicResponse: (slug: string, data: { respondent_token?: string; answers: { question_id: string; value: any }[]; completion_time_seconds?: number }) =>
+    request<{ response_id: string; status: string; thank_you_title: string; thank_you_message: string }>(`/public/f/${slug}/submit`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  submitPublicFormResponse: (slug: string, data: { respondent_token?: string; answers: { question_id: string; value: any }[]; completion_time_seconds?: number }) =>
     request<{ response_id: string; status: string; thank_you_title: string; thank_you_message: string }>(`/public/f/${slug}/submit`, {
       method: "POST",
       body: JSON.stringify(data),

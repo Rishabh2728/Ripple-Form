@@ -363,47 +363,53 @@ export default function BuilderPage() {
 
       {/* 2. Theme Tab */}
       {activeTab === "theme" && (
-        <div className="flex-1 p-8 max-w-4xl mx-auto w-full overflow-y-auto">
-          <h2 className="text-xl font-bold text-[#191716] mb-2 flex items-center gap-2">
-            <Palette className="w-5 h-5 text-[#6E1F2A]" /> Form Theme & Styling
-          </h2>
-          <p className="text-xs text-[#6F6A67] mb-8">
-            Choose a visual palette for your conversational respondent experience.
-          </p>
+        <div className="flex-1 p-8 max-w-5xl mx-auto w-full overflow-y-auto">
+          <div className="crayon-card bg-white p-6 mb-8 border-2 border-[#E6DFD5] space-y-1">
+            <h2 className="text-xl font-extrabold text-[#1C1917] flex items-center gap-2">
+              <Palette className="w-5 h-5 text-[#6E1F2A]" /> Form Theme & Visual Styling
+            </h2>
+            <p className="text-xs text-[#78716C] font-medium">
+              Choose a visual palette for your conversational respondent experience. Themes update live across published & preview forms.
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {AVAILABLE_THEMES.map((theme) => (
-              <div
-                key={theme.id}
-                onClick={async () => {
-                  updateFormLocal((prev) => ({ ...prev, theme_id: theme.id }));
-                  setSaveStatus("saving");
-                  try {
-                    await api.updateForm(form.id, { theme_id: theme.id });
-                    setSaveStatus("saved");
-                    success(`Applied "${theme.name}" theme.`);
-                  } catch (err) {
-                    setSaveStatus("error");
-                  }
-                }}
-                className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
-                  form.theme_id === theme.id ? "border-[#6E1F2A] shadow-card" : "border-[#E7E2DE] hover:border-[#6F6A67]"
-                }`}
-                style={{ backgroundColor: theme.background, color: theme.text }}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-bold">{theme.name}</span>
-                  {form.theme_id === theme.id && (
-                    <span className="w-5 h-5 rounded-full bg-[#6E1F2A] text-white flex items-center justify-center text-xs">
-                      ✓
-                    </span>
-                  )}
+            {AVAILABLE_THEMES.map((theme) => {
+              const isSelected = form.theme_id === theme.id;
+              return (
+                <div
+                  key={theme.id}
+                  onClick={async () => {
+                    updateFormLocal((prev) => ({ ...prev, theme_id: theme.id }));
+                    setSaveStatus("saving");
+                    try {
+                      await api.updateForm(form.id, { theme_id: theme.id });
+                      setSaveStatus("saved");
+                      success(`Applied "${theme.name}" theme.`);
+                    } catch (err) {
+                      setSaveStatus("error");
+                    }
+                  }}
+                  className={`crayon-card p-5 cursor-pointer transition-all border-2 relative ${
+                    isSelected ? "border-[#6E1F2A] shadow-md ring-2 ring-[#F0C9CD]" : "border-[#E6DFD5] hover:border-[#6E1F2A]"
+                  }`}
+                  style={{ backgroundColor: theme.background, color: theme.text }}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs font-extrabold">{theme.name}</span>
+                    {isSelected && (
+                      <span className="w-6 h-6 rounded-full bg-[#6E1F2A] text-white flex items-center justify-center text-xs font-bold shadow-sm">
+                        ✓
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-3.5 rounded-2xl space-y-2 border border-black/10" style={{ backgroundColor: theme.surface }}>
+                    <div className="h-3 rounded-full w-3/4 shadow-xs" style={{ backgroundColor: theme.accent }} />
+                    <div className="h-2 rounded-full w-1/2 opacity-60" style={{ backgroundColor: theme.text }} />
+                  </div>
                 </div>
-                <div className="p-3 rounded-xl space-y-2" style={{ backgroundColor: theme.surface }}>
-                  <div className="h-2.5 rounded-full w-3/4" style={{ backgroundColor: theme.accent }} />
-                  <div className="h-2 rounded-full w-1/2 opacity-50" style={{ backgroundColor: theme.text }} />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
