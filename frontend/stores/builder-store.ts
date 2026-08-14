@@ -79,7 +79,6 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
       form: previous.form,
       past: newPast,
       future: newFuture,
-      saveStatus: "saving"
     });
   },
 
@@ -94,7 +93,6 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
       form: next.form,
       past: newPast,
       future: newFuture,
-      saveStatus: "saving"
     });
   },
 
@@ -103,6 +101,6 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     if (!current) return;
     get().pushHistory();
     const updated = updater(current);
-    set({ form: updated, saveStatus: "saving" });
+    set({ form: updated });
   }
 }));

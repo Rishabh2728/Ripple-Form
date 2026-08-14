@@ -184,6 +184,7 @@ export default function BuilderPage() {
   // Question Mutating Actions
   const handleAddQuestion = async () => {
     if (!form) return;
+    setSaveStatus("saving");
     try {
       const newQ = await api.addQuestion(form.id, {
         type: "short_text",
@@ -197,8 +198,10 @@ export default function BuilderPage() {
         questions: [...prev.questions, newQ],
       }));
       setActiveQuestionId(newQ.id);
+      setSaveStatus("saved");
       success("Question added.");
     } catch (err) {
+      setSaveStatus("error");
       toastError("Failed to add question.");
     }
   };
@@ -222,6 +225,7 @@ export default function BuilderPage() {
 
   const handleDeleteQuestion = async (id: string) => {
     if (!form) return;
+    setSaveStatus("saving");
     try {
       await api.deleteQuestion(id);
       const filtered = form.questions.filter((q) => q.id !== id);
@@ -232,14 +236,17 @@ export default function BuilderPage() {
       if (activeQuestionId === id) {
         setActiveQuestionId(filtered.length > 0 ? filtered[0].id : null);
       }
+      setSaveStatus("saved");
       success("Question deleted.");
     } catch (err) {
+      setSaveStatus("error");
       toastError("Failed to delete question.");
     }
   };
 
   const handleDuplicateQuestion = async (q: Question) => {
     if (!form) return;
+    setSaveStatus("saving");
     try {
       const dup = await api.addQuestion(form.id, {
         type: q.type,
@@ -255,8 +262,10 @@ export default function BuilderPage() {
         questions: [...prev.questions, dup],
       }));
       setActiveQuestionId(dup.id);
+      setSaveStatus("saved");
       success("Question duplicated.");
     } catch (err) {
+      setSaveStatus("error");
       toastError("Failed to duplicate question.");
     }
   };
@@ -267,6 +276,7 @@ export default function BuilderPage() {
       ...prev,
       questions: newQuestions,
     }));
+    setSaveStatus("saving");
     try {
       await api.reorderQuestions(form.id, {
         questions: newQuestions.map((q, idx) => ({ id: q.id, position: idx })),
