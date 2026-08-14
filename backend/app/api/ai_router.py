@@ -4,6 +4,7 @@ from app.services.ai_service import generate_form_with_ai
 
 router = APIRouter(prefix="/ai", tags=["AI Form Generation"])
 
+@router.post("/generate", response_model=AIGenerateResponse)
 @router.post("/generate-form", response_model=AIGenerateResponse)
 async def generate_form(request: AIGenerateRequest):
     """Generate structured form JSON from natural language prompt."""
