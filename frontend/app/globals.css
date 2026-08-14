@@ -44,44 +44,58 @@
   background-position: 0 0, 15px 15px;
 }
 
-/* Elegant Brand Crayon Card & Surface Utilities */
+/* Elegant Brand Card & Surface Utilities */
 .crayon-card {
   background-color: var(--theme-surface, #FFFFFF);
-  border: 2px solid var(--theme-border, #E6DFD5);
+  border: 1.5px solid var(--theme-border, #E6DFD5);
   border-radius: 1.5rem;
-  box-shadow: 2px 2px 0px 0px var(--theme-border, #E6DFD5);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .crayon-card:hover {
-  border-color: var(--theme-accent, #6E1F2A);
-  box-shadow: 3px 3px 0px 0px var(--theme-accent, #6E1F2A);
+  border-color: #F0C9CD;
+  box-shadow: 0 6px 16px rgba(240, 201, 205, 0.35);
 }
 
 .crayon-card-brand {
   background: var(--theme-surface, #FFFFFF);
-  border: 2px solid var(--theme-border, #E6DFD5);
-  box-shadow: 2px 2px 0px 0px var(--theme-border, #E6DFD5);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  border: 1.5px solid var(--theme-border, #E6DFD5);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .crayon-card-brand:hover {
-  border-color: var(--theme-border, #E6DFD5);
-  box-shadow: 3px 3px 0px 0px var(--theme-border, #E6DFD5);
+  border-color: #F0C9CD;
+  box-shadow: 0 6px 16px rgba(240, 201, 205, 0.35);
 }
 
+/* Generic Clean Buttons (No Heavy Black Shadows across App) */
 .crayon-button {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.crayon-button:hover {
+  transform: translateY(-1px);
+}
+
+.crayon-button:active {
+  transform: translateY(0px);
+}
+
+/* Hero & Respondent Preview Buttons (Tactile Style for Home & Preview Pages) */
+.crayon-button-hero {
   border: 2px solid #1C1917;
   box-shadow: 3px 3px 0px 0px #1C1917;
   transition: all 0.2s ease;
 }
 
-.crayon-button:hover {
+.crayon-button-hero:hover {
   transform: translate(-1px, -1px);
   box-shadow: 4px 4px 0px 0px #1C1917;
 }
 
-.crayon-button:active {
+.crayon-button-hero:active {
   transform: translate(1px, 1px);
   box-shadow: 1px 1px 0px 0px #1C1917;
 }

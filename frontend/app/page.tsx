@@ -143,12 +143,12 @@ export default function LandingPage() {
           className="mt-7 flex flex-wrap items-center justify-center gap-4"
         >
           <Link href={user ? "/dashboard" : "/register"}>
-            <Button size="lg" className="crayon-button bg-[#6E1F2A] hover:bg-[#541720] text-white text-sm font-extrabold px-7 py-3.5 rounded-2xl shadow-md" rightIcon={<ArrowRight className="w-4 h-4" />}>
+            <Button size="lg" className="crayon-button-hero bg-[#6E1F2A] hover:bg-[#541720] text-white text-sm font-extrabold px-7 py-3.5 rounded-2xl" rightIcon={<ArrowRight className="w-4 h-4" />}>
               {user ? "Open Dashboard" : "Start Building Free"}
             </Button>
           </Link>
           <Link href="/f/saas-customer-feedback">
-            <Button variant="outline" size="lg" className="crayon-button bg-white text-[#1C1917] hover:bg-[#F6F3ED] text-sm font-bold px-6 py-3.5 rounded-2xl" rightIcon={<ArrowUpRight className="w-4 h-4" />}>
+            <Button variant="outline" size="lg" className="crayon-button-hero bg-white text-[#1C1917] hover:bg-[#F6F3ED] text-sm font-bold px-6 py-3.5 rounded-2xl" rightIcon={<ArrowUpRight className="w-4 h-4" />}>
               Explore Live Demo Form
             </Button>
           </Link>
